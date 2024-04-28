@@ -12,6 +12,7 @@ Notes:
 - I should have gone down the route of having my own cpp and hpp files instead of directly modifying Pulsar, but I am far too deep. Maybe In the future I will swap over, but right now If it works it works.
 - I will not provide any support with building or troubleshooting code. Again, I am very limited and won't be much help. Best advice is trial and error.
 - If you find stuff you want to optimize or fix let me know, I am more than happy to implement them.
+- This will not be updated retroactively with OptPack Updates. If I find the time to upload any new features or changes I will.
 
 
 Updater:
