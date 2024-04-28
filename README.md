@@ -18,7 +18,6 @@ Updater:
 - Very bare-bone updater that downloads files from a VPS.
 - Most of the code is very inefficient but it works.
 - I want to switch to curl or http 1.1 at some point to make it much faster, but the original source for sample http source is very limited.
-- Team selection, where the host of a room can manually set the team of each player. Moreover, team VS has been edited to play exactly as normal VS while keeping the coloured minimap icons and the scoreboard after races.
 - I will not provide any support with building or troubleshooting code. Again, I am very limited and won't be much help. Best advice is trial and error.
 - If you find stuff you want to optimize or fix let me know, I am more than happy to implement them.
 
