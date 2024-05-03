@@ -1,5 +1,5 @@
 # OptPack
-OptPack is Optllizer's third custom track distribution. It has 448 custom tracks within 112 cups.
+OptPack is my third custom track distribution. It has 448 custom tracks within 112 cups. Built off of LE-Code than migrated over to Pulsar.
 
 OptPack:
 - Has most of all Pulsar's Features
