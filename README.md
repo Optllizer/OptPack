@@ -14,7 +14,7 @@ Notes:
 - If you find stuff you want to optimize or fix let me know, I am more than happy to implement them.
 - This will not be updated retroactively with OptPack Updates. If I find the time to upload any new features or changes I will.
 - To use, you need a clean build of Pulsar and CodeWarrior which I will not provide.
-- This also does not include all files needed to run OptPack. For optpack download, get it from here [Wiki](https://wiki.tockdom.com/wiki/OptPack). [Discord](https://discord.gg/xgfscpmX2T)
+- This also does not include all files needed to run OptPack. For optpack download, get it from here [Wiki](https://wiki.tockdom.com/wiki/OptPack) or[Discord](https://discord.gg/xgfscpmX2T)
 
 
 Updater:
