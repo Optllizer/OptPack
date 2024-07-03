@@ -14,10 +14,11 @@
 
 /*OptPack Note: This adds a toggle for display times on WW screen. The code is inefficent, but I forgot how to make it faster and don't care enough. If it works, it works.
 This also removes the draggable blueshell toggle making it part of regsituations so it disables in RTwws, but still stays on everywhere else.
-Also has Kmwrites and ASMFUNC from different gecko codes. Notably anti-flicker for tracks with flickering issues in ghost races.+
+Also has Kmwrites and ASMFUNC from different gecko codes. Notably anti-flicker for tracks with flickering issues in ghost races.
 This also disabled friendly fire as requested by a player who plays battle.*/
 
-
+/*OptPack V1.205 Note
+Added if statement to disable mii heads in time trials.*/
 
 namespace Pulsar {
 namespace Race {
@@ -26,6 +27,7 @@ static int MiiHeads(RaceData* racedata, u32 unused, u32 unused2, u8 id) {
     CharacterId charId = racedata->racesScenario.players[id].characterId;
     const RKNet::RoomType roomType =  RKNet::Controller::sInstance->roomType;
     bool isDisabled = false;
+    const u32 gamemode = RaceData::sInstance->racesScenario.settings.gamemode;
     if(roomType == RKNet::ROOMTYPE_FROOM_HOST || roomType == RKNet::ROOMTYPE_FROOM_NONHOST) {
         isDisabled = System::sInstance->disableMiiHeads;
     }
@@ -34,6 +36,7 @@ static int MiiHeads(RaceData* racedata, u32 unused, u32 unused2, u8 id) {
             if(id == 0) charId = MII_M;
             else if(RKNet::Controller::sInstance->connectionState != 0) charId = MII_M;
         }
+    if(gamemode == MODE_TIME_TRIAL) charId = racedata->racesScenario.players[id].characterId;
     }
     return charId;
 }
@@ -53,9 +56,9 @@ RaceLoadHook BattleGlitch(BattleGlitchEnable);
 kmWrite32(0x8085C914, 0x38000000); //times at the end of races in VS
 static void DisplayTimesInsteadOfNames(CtrlRaceResult& result, u8 id) {
     if(Settings::Mgr::GetSettingValue(Settings::SETTINGSTYPE_MENU, SETTINGMENU_RADIO_TIMES) == MENUSETTING_TIMES_DISABLED)
-    result.DisplayName(id);
+    result.FillName(id);
     if(Settings::Mgr::GetSettingValue(Settings::SETTINGSTYPE_MENU, SETTINGMENU_RADIO_TIMES) == MENUSETTING_TIMES_ENABLED)
-    result.DisplayFinishTime(id);
+    result.FillFinishTime(id);
 }
 kmCall(0x8085d460, DisplayTimesInsteadOfNames); //for WWs
 
@@ -63,7 +66,7 @@ kmCall(0x8085d460, DisplayTimesInsteadOfNames); //for WWs
 kmWrite32(0x807F4DB8, 0x38000001);
 
 //Draggable blue shells
-static void DraggableBlueShells(Item::PlayerSub& sub) {
+static void DraggableBlueShells(Item::PlayerObj& sub) {
     if(Pulsar::CupsConfig::IsRegsSituation()) {
         sub.isNotDragged = true;
     }
@@ -83,7 +86,6 @@ kmWrite32(0x807DFC24, 0x60000000);
 //kmWrite32(0x807b0bd4, 0x38000000); //pass TC to teammate
 //kmWrite32(0x807bd2bc, 0x38000000); //RaceGlobals
 //kmWrite32(0x807f18c8, 0x38000000); //TC alert
-
 
 //CtrlItemWindow
 kmWrite24(0x808A9C16, 'PUL'); //item_window_new -> item_window_PUL
@@ -140,21 +142,6 @@ kmWrite32(0x8064DB2C,0x60000000);
 
 // Don't Lose VR When Disconnecting
 kmWrite32(0x80856560, 0x60000000);
-
-/*
-//FC Everywhere
-asmFunc FCEverywhere() {
-    ASM(
-        nofralloc;
-  cmpwi     r0, 0xE;
-  beq       end; 
-  cmpwi     r0, 0;
-  end:
-    blr;
-    )
-}
-kmCall(0x805E46F8, FCEverywhere);*/
-
 
 //AntiFlicker
 asmFunc AntiFlicker() {
@@ -236,6 +223,19 @@ loc_0xB4:
 }
 kmBranch(0x80052190, AntiFlicker);
 kmPatchExitPoint(AntiFlicker, 0x80052194);
+
+//FC Everywhere
+asmFunc FCEverywhere() {
+    ASM(
+        nofralloc;
+  cmpwi     r0, 0xE;
+  beq       end; 
+  cmpwi     r0, 0;
+  end:
+    blr;
+    )
+}
+kmCall(0x805E46F8, FCEverywhere);
 
 }//namespace Race
 }//namespace Pulsar

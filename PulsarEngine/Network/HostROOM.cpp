@@ -60,8 +60,8 @@ void SetAllToSendPackets(RKNet::ROOMHandler& roomHandler, u32 packetArg) {
         packetReg.packet.message |= hostParam << 2; //uses bit 2 of message
 
         const u8 gpParam = Settings::Mgr::GetSettingValue(Settings::SETTINGSTYPE_HOST, SETTINGHOST_SCROLL_GP_RACES);
-        const u8 disableMiiHeads = Settings::Mgr::GetSettingValue(Settings::SETTINGSTYPE_HOST, SETTINGHOST_ALLOW_MIIHEADS);
-        const u8 disableRegs= Settings::Mgr::GetSettingValue(Settings::SETTINGSTYPE_HOST, SETTINGHOST_ALLOW_REGS);
+        const u8 disableMiiHeads = Settings::Mgr::GetSettingValue(Settings::SETTINGSTYPE_HOST, SETTINGHOST_ALLOW_MIIHEADS) == HOSTSETTING_ALLOW_MIIHEADS_DISABLED;
+        const u8 disableRegs= Settings::Mgr::GetSettingValue(Settings::SETTINGSTYPE_HOST, SETTINGHOST_ALLOW_REGS) == HOSTSETTING_ALLOW_REGS_DISABLED;
         packetReg.packet.message |= gpParam << 3; //uses bits 3-5
         packetReg.packet.message |= disableMiiHeads << 6; //uses bit 6
         packetReg.packet.message |= disableRegs << 7; //uses bit 6

@@ -1,5 +1,7 @@
 #include <kamek.hpp>
 #include <MarioKartWii/Audio/AudioManager.hpp>
+#include <MarioKartWii/UI/SectionMgr/SectionMgr.hpp>
+#include <Sound/MiscSound.hpp>
 #include <SlotExpansion/CupsConfig.hpp>
 #include <SlotExpansion/UI/ExpansionUIMisc.hpp>
 #include <Settings/Settings.hpp>
@@ -53,5 +55,6 @@ nw4r::ut::FileStream* MusicSlotsExpand(nw4r::snd::DVDSoundArchive* archive, void
     return archive->OpenExtStream(buffer, size, extFilePath, 0, length);
 }
 kmCall(0x8009e0e4, MusicSlotsExpand);
-}//namespace Audio
+
+}//namespace Sound
 }//namespace Pulsar

@@ -86,7 +86,7 @@ void ExpVR::RandomizeCombo(PushButton& randomComboButton, u32 hudSlotId) {
         const KartId kart = kartsSortedByWeight[CharacterIDToWeightClass(character)][randomizedKartPos];
 
         sectionParams->characters[hudId] = character;
-        sectionParams->players[hudId] = kart;
+        sectionParams->karts[hudId] = kart;
         sectionParams->combos[hudId].selCharacter = character;
         sectionParams->combos[hudId].selKart = kart;
 
@@ -348,6 +348,15 @@ void LoadCorrectPageAfterMultiDrift(Pages::MultiDriftSelect* page, u32 animDirec
     }
 }
 kmCall(0x8084b68c, LoadCorrectPageAfterMultiDrift);
+
+void SetDefaultToFavouriteCombo(SectionParams& params, PushButton& button) {
+    SaveDataManager* manager = SaveDataManager::sInstance;
+    LicenseManager& license = manager->licenses[button.buttonId - 1];
+    params.ChangeLicense();
+    params.characters[0] = license.GetFavouriteCharacter();
+    params.karts[0] = license.GetFavouriteKart();
+}
+kmCall(0x805eb7c4, SetDefaultToFavouriteCombo);
 
 }//namespace UI
 }//namespace Pulsar

@@ -1,6 +1,7 @@
 #include <MarioKartWii/Item/ItemManager.hpp>
 #include <MarioKartWii/Input/InputManager.hpp>
 #include <MarioKartWii/Item/Obj/Gesso.hpp>
+#include <MarioKartWii/Item/Obj/ObjProperties.hpp>
 #include <MarioKartWii/CourseMgr.hpp>
 #include <MarioKartWii/3D/Model/ModelDirector.hpp>
 #include <MarioKartWii/Driver/DriverManager.hpp>
@@ -13,7 +14,7 @@ namespace Pulsar {
 namespace Race {
 //Credit CLF78 and Stebler, this is mostly a port of their version with slightly different hooks and proper arguments naming since this is C++
 void UseFeather(Item::Player& itemPlayer) {
-    const Kart::Pointers* pointers = itemPlayer.kartPointers;
+    const Kart::Pointers* pointers = itemPlayer.kartLink.pointers;
     pointers->kartMovement->specialFloor |= 0x4; //JumpPad
 
     Kart::Status* status = pointers->kartStatus; //Hijacking bitfield1 14th bit to create a feather state
@@ -32,9 +33,6 @@ void UseBlooperOrFeather(Item::Player& itemPlayer) {
     else itemPlayer.UseBlooper();
 };
 kmWritePointer(0x808A5894, UseBlooperOrFeather);
-//kmBranch(0x807a81b4, UseBlooperOrFeather); //replaces UseBlooper
-
-
 
 void ReplaceBlooperUseOtherPlayers(Item::GessoMgr& gessoMgr, u8 id) {
     if(Info::IsFeather()) {
@@ -115,7 +113,7 @@ static u32 ConditionalBlooperTimer(u32 timer) {
     return timer;
 }
 kmCall(0x807bba64, ConditionalBlooperTimer);
-
+kmWrite32(0x807bba68, 0x907f003c); //store r3, the return value of the function
 /* for spraying, useless
 void ConditionalFeatherBRRES(g3d::ResFile& file, ArchiveSource type, const char* brresName) {
     if(Info::IsFeather()) brresName = "feather.brres";
