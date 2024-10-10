@@ -121,6 +121,6 @@ snd::SoundStartable::StartResult PlayExtBRSEQ(snd::SoundStartable& startable, Au
 //kmWrite32(0x80719920, 0x48000010);
 
 //disable THP and demo by blring SinglePlayer::CalcTitlePageNext
-kmWrite32(0x806fa738, 0x4e800020);
+//kmWrite32(0x806fa738, 0x4e800020);
 }//namespace Sound
 }//namespace Pulsar

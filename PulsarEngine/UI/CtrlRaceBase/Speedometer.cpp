@@ -93,21 +93,42 @@ void CtrlRaceSpeedo::OnUpdate() {
     MTX::PSVECAdd(&physics->speed3, &sum, &sum);
     float speed = MTX::PSVECMag(&sum);
     float speedCap = pointers.kartMovement->hardSpeedLimit;
-    if(speed > speedCap) speed = speedCap;
-
+    if (speed > speedCap) speed = speedCap;
 
     const u32 speedValue = static_cast<u32>(speed * 1000.0f);
 
-    //10 means empty, 11 dot
+    // 10 means empty, 11 dot
     u32 hundreds = speedValue % 1000000 / 100000;
     u32 tens = speedValue % 100000 / 10000;
     u32 units = speedValue % 10000 / 1000;
-    u32 dot = digits >= 1 ? 11 : 10;
-    u32 tenths = digits >= 1 ? speedValue % 1000 / 100 : 10;
-    u32 hundredths = digits >= 2 ? speedValue % 100 / 10 : 10;
-    u32 thousandths = digits == 3 ? speedValue % 100 / 10 : 10;
 
-    if(speedValue < 10000) { //shift everything by 2 to the left
+    // Adjust handling of dot and decimals based on `digits` value
+    u32 dot, tenths, hundredths, thousandths;
+
+    if (digits == 0) {
+        dot = 11; // show dot
+        tenths = speedValue % 1000 / 100;
+        hundredths = 10;
+        thousandths = 10;
+    } else if (digits == 1) {
+        dot = 11; // show dot
+        tenths = speedValue % 1000 / 100;
+        hundredths = speedValue % 100 / 10;
+        thousandths = 10;
+    } else if (digits == 2) {
+        dot = 11; // show dot
+        tenths = speedValue % 1000 / 100;
+        hundredths = speedValue % 100 / 10;
+        thousandths = speedValue % 10;
+    } else {
+        dot = 10; // no dot
+        tenths = 10;
+        hundredths = 10;
+        thousandths = 10;
+    }
+
+    // Adjust positioning for smaller speed values
+    if (speedValue < 10000) { // shift everything by 2 to the left
         hundreds = units;
         tens = dot;
         units = tenths;
@@ -116,7 +137,7 @@ void CtrlRaceSpeedo::OnUpdate() {
         hundredths = 10;
         thousandths = 10;
     }
-    else if(speedValue < 100000) {
+    else if (speedValue < 100000) { // shift by 1 to the left
         hundreds = tens;
         tens = units;
         units = dot;

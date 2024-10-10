@@ -13,21 +13,16 @@ bool Info::IsHAW(bool isRoomHost) {
     if(isRoomHost) return Settings::Mgr::GetSettingValue(Settings::SETTINGSTYPE_HOST, SETTINGHOST_RADIO_HOSTWINS);
     else return system->hasHAW; //set by ROOM for non-hosts
 }
-
 bool Info::Is200cc() {
     return Info::Has200cc() && !CupsConfig::IsRegsSituation() && RaceData::sInstance->racesScenario.settings.engineClass == CC_100;
 }
 bool Info::IsFeather() {
     return Info::HasFeather() && !CupsConfig::IsRegsSituation();
 }
-
 bool Info::IsUMTs() {
     return Info::HasUMTs() && !CupsConfig::IsRegsSituation();
 }
 bool Info::IsMegaTC() {
     return Info::HasMegaTC() && !CupsConfig::IsRegsSituation();
-}
-bool Info::IsAllItemsCanLand() {
-    return Info::HasAllItemsCanLand() && !CupsConfig::IsRegsSituation();
 }
 }//namespace Pulsar

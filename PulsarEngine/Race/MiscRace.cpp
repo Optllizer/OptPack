@@ -143,6 +143,23 @@ kmWrite32(0x8064DB2C,0x60000000);
 // Don't Lose VR When Disconnecting
 kmWrite32(0x80856560, 0x60000000);
 
+//FC Everywhere
+kmWrite32(0x805E60CC,0x38000000);
+
+//HUD Colors
+kmWrite32(0x80895CC0, 0x00200086);
+kmWrite32(0x80895CC4, 0x008600FF);
+kmWrite32(0x80895CC8, 0x005200A3);
+kmWrite32(0x80895CCC, 0x00A300FF);
+kmWrite32(0x80895CD0, 0x005200A3);
+kmWrite32(0x80895CD4, 0x00A30046);
+kmWrite32(0x80895CD8, 0x00200086);
+kmWrite32(0x80895CDC, 0x008600FF);
+kmWrite32(0x80895CE0, 0x00200086);
+kmWrite32(0x80895CE4, 0x008600FF);
+kmWrite32(0x80895CE8, 0x00200086);
+kmWrite32(0x80895CEC, 0x00860046);
+
 //AntiFlicker
 asmFunc AntiFlicker() {
     ASM(
@@ -224,18 +241,19 @@ loc_0xB4:
 kmBranch(0x80052190, AntiFlicker);
 kmPatchExitPoint(AntiFlicker, 0x80052194);
 
-//FC Everywhere
-asmFunc FCEverywhere() {
-    ASM(
-        nofralloc;
-  cmpwi     r0, 0xE;
-  beq       end; 
-  cmpwi     r0, 0;
-  end:
-    blr;
-    )
+/*
+//480p Graphics Fix
+asmFunc GraphicsFix(){
+  ASM(
+      nofralloc;
+  loc_0x0:
+  li r3, 0x3;
+  stb r3, 25(r1);
+    end:
+  blr;
+)
 }
-kmCall(0x805E46F8, FCEverywhere);
+kmCall(0x801BCDDC, GraphicsFix);*/
 
 }//namespace Race
 }//namespace Pulsar

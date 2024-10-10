@@ -34,7 +34,7 @@ bool LoadBRSTMVolumeAndFixTrackCount(snd::detail::StrmFileLoader& fileLoader, sn
     }
     return ret;
 }
-kmCall(0x800a66f4, LoadBRSTMVolumeAndFixTrackCount);
+//kmCall(0x800a66f4, LoadBRSTMVolumeAndFixTrackCount);
 //kmWrite32(0x800a66f0, 0x389DFF00);
 
 //Automatic BRSAR patching from Elias_
