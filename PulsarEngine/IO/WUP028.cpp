@@ -1,4 +1,11 @@
 /* 
+Changed Function Names to work with Pulsar
+Removed Logging
+
+Original Source:https://github.com/Gabriela-Orzechowska/MKW-Cosmos/blob/main/code/System/WUP028.cpp
+
+
+
  * This file is part of the Cosmos
  * Copyright (c) 2023-2024 Gabriela Orzechowska
  * 
