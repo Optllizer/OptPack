@@ -8,17 +8,6 @@ const int ipcMaxFileName = 13;
 typedef char IPCFileName[ipcMaxFileName];
 typedef char IPCPath[ipcMaxPath];
 
-typedef enum {
-        IPC_OK = 0,
-        IPC_EACCES = -1,
-        IPC_EBUSY = -2,
-        IPC_EINVAL = -4,
-        IPC_ENOENT = -6,
-        IPC_EQUEUEFULL = -8,
-        IPC_ENOMEM = -22,
-    } IPCResult;
-
-
 enum Error {
     ERROR_PERMISSION_DENIED = -1,
     ERROR_FILE_EXISTS = -2,
@@ -112,16 +101,17 @@ struct Request
         FileStats stats;
     };
 }; //total size 0x80
+typedef void (*AsyncCallback)(s32 ret, void* arg);
 
-typedef void (*IOSAsyncCallback)(s32 ret, void* arg);
-IPCResult OpenAsync(const char* path, Mode mode, IOSAsyncCallback cb, void* arg);
-s32 IOCtlAsync(s32 fd, IOCtlType ioctl,void *buffer_in,s32 len_in,void *buffer_io,s32 len_io, IOSAsyncCallback cb, void* arg);
 s32 Open(const char* path, Mode mode);
 s32 Read(s32 fd, void* buffer, s32 length);
 s32 Write(s32 fd, const void* buffer, s32 length);
 s32 Seek(s32 fd, s32 offset, SeekType whence); //returns length until the end, best to get file length
 s32 Close(s32 fd);
 s32 IOCtl(s32 fd, IOCtlType ioctl, void* buffer_in, s32 len_in, void* buffer_io, s32 len_io);
+s32 IOCtlAsync(s32 fd, IOCtlType ioctl, void* buffer_in, s32 len_in, void* buffer_io, s32 len_io, AsyncCallback cb, void* ctxt);
+
+s32 IOCtlAsync(); //80194158
 s32 IOCtlv(s32 fd, IOCtlType ioctl, s32 countIv, s32 countIO, IOCtlvRequest* argv);
 s32 Open2ndInst(const char* path, Mode mode);
 extern s32 fs_fd;

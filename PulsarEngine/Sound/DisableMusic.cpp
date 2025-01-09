@@ -1,17 +1,17 @@
 #include <kamek.hpp>
 #include <MarioKartWii/Audio/Other/AudioValues.hpp>
 #include <Settings/Settings.hpp>
-#include <Settings/UI/SettingsPanel.hpp>
+#include <Settings/SettingsParam.hpp>
 #include <PulsarSystem.hpp>
 
 /*OptPack Note: Code by Brawlbox. Realistically, I could switch to Pulsars default, but on OptPack release music didnt disable wifi music and
 this just works and 99.9% also want the menu music disabled.*/
 
 
-namespace OptPack {
+namespace Pulsar{
 namespace Sound {
     void SetMusicState(){
-        if (Pulsar::Settings::Mgr::GetSettingValue(Pulsar::Settings::SETTINGSTYPE_MENU,SETTINGMENU_RADIO_DISABLEMUSIC)){
+        if (Pulsar::Settings::Mgr::Get().GetSettingValue(Pulsar::Settings::SETTINGSTYPE_MENU,SETTINGMENU_RADIO_DISABLEMUSIC)){
            Audio::PlayersVolumeMgr::sInstance->volumes[0].curValue = 0;
         }
     }

@@ -1,12 +1,16 @@
 #include <kamek.hpp>
-#include <core/nw4r/ut/Misc.hpp>
+#include <core/System/SystemManager.hpp>
+#include <core/rvl/base/ppc.hpp>
+#include <core/rvl/os/OSthread.hpp>
+#include <core/rvl/os/OSTitle.hpp>
+#include <core/rvl/os/OSBootInfo.hpp>
 #include <core/rvl/pad.hpp>
 #include <core/rvl/kpad.hpp>
+#include <core/egg/Exception.hpp>
 #include <Debug/Debug.hpp>
-#include <IO/IO.hpp>
 #include <PulsarSystem.hpp>
+#include <IO/IO.hpp>
 
-extern char gameID[4];
 namespace Pulsar {
 namespace Debug {
 
@@ -31,25 +35,25 @@ void LaunchSoftware() { //If dolphin, restarts game, else launches Riivo->HBC->O
         SystemManager::Shutdown();
         return;
     }
-    result = IO::OpenFix("/title/00010001/52494956/content/title.tmd\0", IOS::MODE_NONE); //Riivo
-    if(result >= 0) {
-        ISFS::Close(result);
-        OS::LaunchTitle(0x00010001, 0x52494956);
-        return;
-    }
     result = IO::OpenFix("/title/00010001/4c554c5a/content/title.tmd\0", IOS::MODE_NONE); //OHBC
     if(result >= 0) {
         ISFS::Close(result);
-        OS::LaunchTitle(0x00010001, 0x4c554c5a);
+         OS::__LaunchTitle(0x00010001, 0x4c554c5a);
+        return;
+    }
+    result = IO::OpenFix("/title/00010001/52494956/content/title.tmd\0", IOS::MODE_NONE); //Riivo
+    if(result >= 0) {
+        ISFS::Close(result);
+         OS::__LaunchTitle(0x00010001, 0x57524554);
         return;
     }
     result = IO::OpenFix("/title/00010001/48424330/content/title.tmd\0", IOS::MODE_NONE); // If HBC can't be found try OHBC
     if(result >= 0) {
         ISFS::Close(result);
-        OS::LaunchTitle(0x00010001, 0x48424330);
+         OS::__LaunchTitle(0x00010001, 0x48424330);
         return;
     }
-    OS::LaunchTitle(0x1, 0x2); // Launch Wii Menu if channel isn't found
+     OS::__LaunchTitle(0x1, 0x2); // Launch Wii Menu if channel isn't found
 }
 #pragma suppress_warnings reset
 
@@ -73,7 +77,7 @@ static void SetConsoleParams() {
 BootHook ConsoleParams(SetConsoleParams, 1);
 
 
-ExceptionFile::ExceptionFile(const OS::Context& context) : magic('PULD'), region(*reinterpret_cast<u32*>(gameID)), reserved(-1) {
+ExceptionFile::ExceptionFile(const OS::Context& context) : magic('PULD'), region(*reinterpret_cast<u32*>(OS::BootInfo::mInstance.diskID.gameName)), reserved(-1) {
     this->srr0.name = 'srr0';
     this->srr0.gpr = context.srr0;
     this->srr1.name = 'srr1';
@@ -114,7 +118,7 @@ static void WriteHeaderCrash(u16 error, const OS::Context* context, u32 dsisr, u
     //char endMsg[512];
     //snprintf(endMsg, 512, "Press A%s and send a clip\nof the crash or the crash.pul file to the pack\ncreator to help fix the bug.\n", outcome);
 
-    db::Exception_Printf_("Press A to exit. Send crash.pul to the creator.");
+    db::Exception_Printf_("Press A to exit. Send crash.pul to Optllizer.");
     db::PrintContext_(error, context, dsisr, dar);
 
 }

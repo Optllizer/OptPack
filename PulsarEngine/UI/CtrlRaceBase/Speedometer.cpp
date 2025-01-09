@@ -1,16 +1,15 @@
+#include <MarioKartWii/Kart/KartManager.hpp>
 #include <UI/CtrlRaceBase/Speedometer.hpp>
 #include <Settings/Settings.hpp>
-
-
-/*OptPack Note: This has modifed to allow for more than pulsars defaults. The reason theres a extra speedo_ is because one contains the optpack logo for the disabled option
-This used to very inefficant before fixing it with if statements. Almost had 4 different cpp files for speedometer.*/
 
 namespace Pulsar {
 namespace UI {
 u32 CtrlRaceSpeedo::Count() {
-    u32 localPlayerCount = RaceData::sInstance->racesScenario.localPlayerCount;
+    const RacedataScenario& scenario = Racedata::sInstance->racesScenario;
+    u32 localPlayerCount = scenario.localPlayerCount;
     const SectionId sectionId = SectionMgr::sInstance->curSection->sectionId;
     if(sectionId >= SECTION_WATCH_GHOST_FROM_CHANNEL && sectionId <= SECTION_WATCH_GHOST_FROM_MENU) localPlayerCount += 1;
+    if(localPlayerCount == 0 && (scenario.settings.gametype & GAMETYPE_ONLINE_SPECTATOR)) localPlayerCount = 1;
     return localPlayerCount;
 }
 void CtrlRaceSpeedo::Create(Page& page, u32 index, u32 count) {
@@ -20,16 +19,16 @@ void CtrlRaceSpeedo::Create(Page& page, u32 index, u32 count) {
         page.AddControl(index + i, *som, 0);
         char variant[0x20];
         int pos = i;
-        if(count == 1 && Settings::Mgr::GetSettingValue(Settings::SETTINGSTYPE_RACE, SETTINGRACE_RADIO_SOM) == RACESETTING_SOM_CLASSIC) {
+        if(count == 1 && Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_RACE, SETTINGRACE_RADIO_SOM) == RACESETTING_SOM_CLASSIC) {
             pos = 1;
             snprintf(variant, 0x20, "Speedo_%1d_%1d", 1, 0);
-        } else if(count == 1 && Settings::Mgr::GetSettingValue(Settings::SETTINGSTYPE_RACE, SETTINGRACE_RADIO_SOM) == RACESETTING_SOM_LEFT) {
+        } else if(count == 1 && Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_RACE, SETTINGRACE_RADIO_SOM) == RACESETTING_SOM_LEFT) {
             pos = 1;
             snprintf(variant, 0x20, "Speedo2_%1d_%1d", 1, 0);
-        } else if(count == 1 && Settings::Mgr::GetSettingValue(Settings::SETTINGSTYPE_RACE, SETTINGRACE_RADIO_SOM) == RACESETTING_SOM_RIGHT) {
+        } else if(count == 1 && Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_RACE, SETTINGRACE_RADIO_SOM) == RACESETTING_SOM_RIGHT) {
             pos = 1; 
             snprintf(variant, 0x20, "Speedo4_%1d_%1d", 4, 3);
-        } else if(count == 1 && Settings::Mgr::GetSettingValue(Settings::SETTINGSTYPE_RACE, SETTINGRACE_RADIO_SOM) == RACESETTING_SOM_DISABLED){
+        } else if(count == 1 && Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_RACE, SETTINGRACE_RADIO_SOM) == RACESETTING_SOM_DISABLED){
             snprintf(variant, 0x20, "Speedo3_%1d_%1d", 4, 2);
         } else {
             pos = 1;
@@ -53,13 +52,13 @@ void CtrlRaceSpeedo::Load(const char* variant, u8 id) {
         "Thousandths", "Thousandths", nullptr,
         nullptr
     };
-    if(id == 0 && Settings::Mgr::GetSettingValue(Settings::SETTINGSTYPE_RACE, SETTINGRACE_RADIO_SOM) == RACESETTING_SOM_CLASSIC) {
+    if(id == 0 && Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_RACE, SETTINGRACE_RADIO_SOM) == RACESETTING_SOM_CLASSIC) {
         loader.Load(UI::raceFolder, "PULSpeedo", variant, anims);
-    } else if(id == 0 && Settings::Mgr::GetSettingValue(Settings::SETTINGSTYPE_RACE, SETTINGRACE_RADIO_SOM) == RACESETTING_SOM_LEFT) {
+    } else if(id == 0 && Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_RACE, SETTINGRACE_RADIO_SOM) == RACESETTING_SOM_LEFT) {
         loader.Load(UI::raceFolder, "PULSpeedo2", variant, anims);
-    } else if(id == 0 && Settings::Mgr::GetSettingValue(Settings::SETTINGSTYPE_RACE, SETTINGRACE_RADIO_SOM) == RACESETTING_SOM_RIGHT) {
+    } else if(id == 0 && Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_RACE, SETTINGRACE_RADIO_SOM) == RACESETTING_SOM_RIGHT) {
         loader.Load(UI::raceFolder, "PULSpeedo4", variant, anims);
-    } else if (id == 0 && Settings::Mgr::GetSettingValue(Settings::SETTINGSTYPE_RACE, SETTINGRACE_RADIO_SOM) == RACESETTING_SOM_DISABLED) {
+    } else if (id == 0 && Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_RACE, SETTINGRACE_RADIO_SOM) == RACESETTING_SOM_DISABLED) {
         loader.Load(UI::raceFolder, "PULSpeedo3", variant, anims);
     } else {
       loader.Load(UI::raceFolder, "PULSpeedo", variant, anims);
@@ -84,7 +83,7 @@ void CtrlRaceSpeedo::Init() {
 
 void CtrlRaceSpeedo::OnUpdate() {
     this->UpdatePausePosition();
-    const u8 digits = Settings::Mgr::GetSettingValue(Settings::SETTINGSTYPE_RACE, SETTINGRACE_SCROLL_SOM);
+    const u8 digits = Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_RACE, SETTINGRACE_SCROLL_SOM);
     const Kart::Pointers& pointers = Kart::Manager::sInstance->players[this->GetPlayerId()]->pointers;
     const Kart::Physics* physics = pointers.kartBody->kartPhysicsHolder->physics;
 

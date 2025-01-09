@@ -1,8 +1,7 @@
 #include <Ghost/PULLeaderboard.hpp>
 #include <Ghost/GhostManager.hpp>
 #include <SlotExpansion/UI/ExpansionUIMisc.hpp>
-#include <IO/IO.hpp>
-
+#include <SlotExpansion/CupsConfig.hpp>
 
 namespace Pulsar {
 namespace Ghosts {
@@ -12,11 +11,11 @@ Leaderboard::Leaderboard() {
     memset(this, 0, sizeof(Leaderboard));
     this->magic = Leaderboard::fileMagic;
     this->version = curVersion;
-    for(int mode = 0; mode < 4; mode++) this->hasTrophy[mode] = false;
+    for(int mode = 0; mode < 4; ++mode) this->hasTrophy[mode] = false;
 }
 
 //CTOR to build it from the raw file
-Leaderboard::Leaderboard(const char* folderPath, PulsarId id) {
+Leaderboard::Leaderboard(const char* folderPath, PulsarId id, bool createNew) {
     char path[IOS::ipcMaxPath];
     snprintf(path, IOS::ipcMaxPath, filePathFormat, folderPath);
     IO* io = IO::sInstance;
@@ -24,7 +23,7 @@ Leaderboard::Leaderboard(const char* folderPath, PulsarId id) {
     if(ret) ret = io->Read(sizeof(Leaderboard), this);
 
     if(!ret || this->crc32 != crc32 || magic != fileMagic) {
-        this->CreateFile(id);
+        if(createNew) this->CreateFile(id);
         //System::sInstance->taskThread->Request(&Leaderboard::CreateFile, id, 0);
         new (this) Leaderboard;
         this->SetTrack(id);
@@ -35,7 +34,7 @@ Leaderboard::Leaderboard(const char* folderPath, PulsarId id) {
 //This is its own function so that the file can be created async 
 void Leaderboard::CreateFile(PulsarId id) {
     char path[IOS::ipcMaxPath];
-    snprintf(path, IOS::ipcMaxPath, filePathFormat, Manager::folderPath);
+    snprintf(path, IOS::ipcMaxPath, filePathFormat, Mgr::folderPath);
     IO* io = IO::sInstance;
     io->CreateAndOpen(path, FILE_MODE_READ_WRITE);
     alignas(0x20) Leaderboard tempCopy;
@@ -69,17 +68,17 @@ s8 Leaderboard::GetRepeatCount(const RKG& rkg) const {
     const RKGHeader& header = rkg.header;
     s8 repeats = 0;
     for(int i = 0; i < 11; ++i) {
-        const PULTimeEntry& cur = this->entries[mode][i];
+        const PULLdbEntry& cur = this->entries[mode][i];
         if(cur.milliseconds == header.milliseconds && cur.seconds == header.seconds && cur.minutes == header.minutes) repeats++;
     }
     return repeats;
 }
 
 //updates the ldb with a new entry and a rkg crc32
-void Leaderboard::Update(u32 position, const TimeEntry& entry, u32 rkgCRC32) {
+void Leaderboard::Update(u32 position, const RKSYS::LicenseLdbEntry& entry, u32 rkgCRC32) {
     const TTMode mode = System::sInstance->ttMode;
     if(position != ENTRY_FLAP) { //if 10 then flap
-        for(int i = ENTRY_10TH; i > position; i--) memcpy(&this->entries[mode][i], &this->entries[mode][i - 1], sizeof(PULTimeEntry));
+        for(int i = ENTRY_10TH; i > position; i--) memcpy(&this->entries[mode][i], &this->entries[mode][i - 1], sizeof(PULLdbEntry));
         this->entries[mode][position].rkgCRC32 = rkgCRC32;
     }
     memcpy(&this->entries[mode][position].mii, &entry.miiData, sizeof(RFL::StoreData));
@@ -110,7 +109,7 @@ void Leaderboard::EntryToTimer(Timer& dest, u8 id) const {
     dest.isActive = this->entries[mode][id].isActive;
 }
 
-void Leaderboard::EntryToTimeEntry(TimeEntry& dest, u8 id) const {
+void Leaderboard::EntryToGameEntry(RKSYS::LicenseLdbEntry& dest, u8 id) const {
     this->EntryToTimer(dest.timer, id);
     TTMode mode = System::sInstance->ttMode;
     memcpy(&dest.miiData, &this->entries[mode][id].mii, sizeof(RFL::StoreData));
@@ -119,10 +118,10 @@ void Leaderboard::EntryToTimeEntry(TimeEntry& dest, u8 id) const {
     dest.controllerType = this->entries[mode][id].controllerType;
 }
 
-//PULEntry to TimeEntry
-const TimeEntry* Leaderboard::GetEntry(u32 index) {
-    Manager* manager = Manager::sInstance;
-    manager->GetLeaderboard().EntryToTimeEntry(manager->entry, index);
+//PULEntry to LicenseLdbEntry
+const RKSYS::LicenseLdbEntry* Leaderboard::GetEntry(u32 index) {
+    Mgr* manager = Mgr::sInstance;
+    manager->GetLeaderboard().EntryToGameEntry(manager->entry, index);
     return &manager->entry;
 }
 kmWrite32(0x8085d5bc, 0x3860000a);
@@ -140,7 +139,7 @@ kmCall(0x8085da54, Leaderboard::GetEntry);
 //Correct BMG if you beat the expert
 kmWrite32(0x8085d744, 0x38805000);
 int Leaderboard::ExpertBMGDisplay() {
-    Manager* manager = Manager::sInstance;
+    Mgr* manager = Mgr::sInstance;
     manager->GetLeaderboard().EntryToTimer(manager->entry.timer, ENTRY_1ST);
     const Timer& expert = manager->GetExpert();
     if(expert.isActive && expert > manager->entry.timer) return 2;
@@ -149,5 +148,10 @@ int Leaderboard::ExpertBMGDisplay() {
 kmCall(0x8085dc0c, Leaderboard::ExpertBMGDisplay);
 kmWrite32(0x8085dc10, 0x38000002);
 
+void Leaderboard::SetFavGhost(u32 fileIdx, TTMode mode, bool add) {
+    char* dest = &this->favGhost[mode][0];
+    dest[0] = '\0';
+    if(add) strncpy(dest, Mgr::GetGhostFileName(fileIdx), IOS::ipcMaxFileName);
+}
 }//namespace Ghosts
 }//namespace Pulsar

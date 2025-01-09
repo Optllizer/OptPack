@@ -8,8 +8,6 @@ Created: 15/08/2009
 Using some source from ftpii v0.0.5
 ftpii Source Code Copyright (C) 2008 Joseph Jordan <joe.ftpii@psychlaw.com.au>
 
-OptPack Updater
-
 */
 #include <errno.h>
 #include <malloc.h>
@@ -79,7 +77,7 @@ int get_latest_version(s32* server) {
   FILE* fp = fopen("remote_version.txt", "wb");
 
   char http_request2[1000];
-  strcpy(http_request2, "GET /path/to/last_version.txt");
+  strcpy(http_request2, "GET /optpack/update1/last_version.txt");
   strcat(http_request2, " HTTP/1.0\r\nHost: www.codemii.com\r\nCache-Control: no-cache\r\n\r\n");
 
   write_http_reply(*server, http_request2);
@@ -108,14 +106,14 @@ void get_filenames(s32* server, int version) {
   snprintf(tmp, sizeof(char) * 128, "%d/%s", version, test);
 
 	//printf("Getting download list from: '%s'\n", tmp);
-    //printf("Setting up your pack to update.\n");
+    //printf("Setting up your OptPack to update.\n");
     //printf("\n");
-    char list[100]="sd:/path/to/pack/download_list.txt";
+    char list[100]="sd:/optpack/download_list.txt";
     FILE *f = fopen(list, "wb");
 
     if (f == NULL) {
         fclose(f);
-        die("There was a problem creating/accessing the update. Please contact pack dev in the pack discord. Error:115\n");
+        die("There was a problem creating/accessing the update. Please contact Optllizer in the OptPack discord. Error:115\n");
     }
 
     s32 filename_server;
@@ -124,7 +122,7 @@ void get_filenames(s32* server, int version) {
     //printf("Downloading update information from the server...\n");
 
     char http_request[1000];
-    strcpy(http_request, "GET /path/to/pack/update1/");
+    strcpy(http_request, "GET /optpack/update1/");
     strcat(http_request, tmp);
     strcat(http_request, " HTTP/1.0\r\nHost: www.codemii.com\r\nCache-Control: no-cache\r\n\r\n");
 
@@ -136,11 +134,11 @@ void get_filenames(s32* server, int version) {
     if (result) {
         //printf("\nSuccessfully downloaded update information.\n");
     } else {
-        printf("\nFailed to setup pack to update. Error:136\n");
-        printf("\nPlease contact pack dev in the pack discord.\n");
+        printf("\nFailed to setup OptPack to update. Error:136\n");
+        printf("\nPlease contact Optllizer in the OptPack discord.\n");
     }
 
-    //printf("Finished setting up pack to update.\n");
+    //printf("Finished setting up OptPack to update.\n");
 	printf("\n");
     net_close(filename_server);
     sleep(3);
@@ -159,7 +157,7 @@ void load_filenames(char** arr, int* cntr, int version) {
         memset(arr[y], 0, MAX_FILENAME_LENGTH*sizeof(char));
     }
 
-    char list[100]="sd:/path/to/pack/download_list.txt";
+    char list[100]="sd:/optpack/download_list.txt";
     FILE *f = fopen(list, "r");
     char buffer[MAX_FILENAME_LENGTH];
     int x = 0;
@@ -180,18 +178,34 @@ void load_filenames(char** arr, int* cntr, int version) {
 }
 
 void copy_file() {
-    char *src = "sd:/path/to/pack/settings.pul";
-    char *dest = "sd:/path/to/pack/binaries/settings.pul";
+    char *src = "sd:/optpack/Settings.pul";
+    char dest_base[] = "sd:/optpack/binaries/Settings";
+    char dest[200];  // Buffer to hold the destination file name
 
     FILE *source, *target;
     char buffer[128];  // Buffer to hold file content
 
+    // Open the source file
     source = fopen(src, "r");
     if (source == NULL) {
         //perror("Error opening source file");
         return;
     }
 
+    // Generate a unique destination file name
+    int suffix = 1;
+    do {
+        snprintf(dest, sizeof(dest), "%s_%d.pul", dest_base, suffix);
+        FILE *check = fopen(dest, "r");
+        if (check) {
+            fclose(check);  // File exists, increment suffix
+            suffix++;
+        } else {
+            break;  // File does not exist, use this name
+        }
+    } while (1);
+
+    // Open the target file for writing
     target = fopen(dest, "w");
     if (target == NULL) {
         //perror("Error opening destination file");
@@ -199,6 +213,7 @@ void copy_file() {
         return;
     }
 
+    // Copy the content from source to target
     size_t n, m;
     while ((n = fread(buffer, 1, sizeof buffer, source)) > 0) {
         m = fwrite(buffer, 1, n, target);
@@ -214,81 +229,82 @@ void copy_file() {
 
     fclose(source);
     fclose(target);
+
+    //printf("Successfully copied to: %s\n", dest);
 }
 
-void delete_files_from_server(s32* server, int version) {
-    char filename[100] = "delete_list.txt";
-    char* tmp;
-    tmp = malloc(sizeof(char) * 128);
-    snprintf(tmp, sizeof(char) * 128, "%d/%s", version, filename);
 
-    char list[100] = "sd:/path/to/pack/delete_list.txt";
+void delete_files(s32* server, int version) {
+    int result = 0;
+
+    // Path to the delete list
+    char delete_list[100] = "delete_list.txt";
+    char* tmp;
+
+    // Allocate memory for constructing the full path
+    tmp = malloc(sizeof(char) * 128);
+    snprintf(tmp, sizeof(char) * 128, "%d/%s", version, delete_list);
+
+    // Define the local path for storing delete_list.txt
+    char list[100] = "sd:/optpack/delete_list.txt";
     FILE *f = fopen(list, "wb");
 
     if (f == NULL) {
         fclose(f);
-        printf("There was a problem creating/accessing the file. Error:115\n");
-        return;
+        die("There was a problem creating/accessing the delete list. Please contact Optllizer in the OptPack discord. Error:115\n");
     }
 
     s32 filename_server;
     filename_server = server_connect();
 
+    // Construct the HTTP request for delete_list.txt
     char http_request[1000];
-    strcpy(http_request, "GET /path/to/pack/update1/");
+    strcpy(http_request, "GET /optpack/update1/");
     strcat(http_request, tmp);
     strcat(http_request, " HTTP/1.0\r\nHost: www.codemii.com\r\nCache-Control: no-cache\r\n\r\n");
 
     write_http_reply(filename_server, http_request);
-    int result = request_file(filename_server, f);
+    result = request_file(filename_server, f);
 
     fclose(f);
 
-    if (result) {
-        //printf("\nSuccessfully downloaded delete list.\n");
-    } else {
-        //printf("\nFailed to download delete list. Error:136\n");
+    if (!result) {
+        printf("\nFailed to download delete_list.txt. Error:136\n");
+        printf("\nPlease contact Optllizer in the OptPack discord.\n");
+        free(tmp);
         return;
     }
 
     net_close(filename_server);
-    sleep(3);
+    free(tmp);
 
-    // Now delete the files
-    FILE *file = fopen(list, "r");
-    if (file == NULL) {
-        //printf("Cannot open file\n");
-        return;
+    // Now process the delete list and delete files
+    f = fopen(list, "r");
+    if (f == NULL) {
+        die("Unable to open delete_list.txt for reading.\n");
     }
 
-    char line[256];
-    while (fgets(line, sizeof(line), file)) {
-        line[strcspn(line, "\n")] = 0; // remove newline character
-        char file_to_delete[260];
-        snprintf(file_to_delete, sizeof(file_to_delete), "sd:/%s", line);
-        DIR* dir = opendir(file_to_delete);
-        if (dir) {
-            /* Directory exists. */
-            closedir(dir);
-            if (rmdir(file_to_delete) == 0) {
-                //printf("Deleted successfully: %s\n", file_to_delete);
-            } else {
-                //printf("Unable to delete the directory: %s\n", file_to_delete);
-            }
-        } else if (ENOENT == errno) {
-            /* Directory does not exist. */
-            if (remove(file_to_delete) == 0) {
-                //printf("Deleted successfully: %s\n", file_to_delete);
-            } else {
-                //printf("Unable to delete the file: %s\n", file_to_delete);
-            }
+    char buffer[MAX_FILENAME_LENGTH];
+    while (fgets(buffer, MAX_FILENAME_LENGTH, f)) {
+        // Strip newline characters
+        buffer[strcspn(buffer, "\r")] = 0;
+        buffer[strcspn(buffer, "\n")] = '\0';
+
+        // Construct the full path to the file
+        char full_path[200] = "sd:/";
+        strcat(full_path, buffer);
+
+        // Attempt to delete the file
+        if (remove(full_path) == 0) {
+            //printf("Deleted file: %s\n", full_path);
         } else {
-            /* opendir() failed for some other reason. */
-            //printf("Unable to access the path: %s\n", file_to_delete);
+            //printf("Failed to delete file: %s\n", full_path);
         }
     }
 
-    fclose(file);
+    fclose(f);
+
+    //printf("\nFinished processing delete list.\n");
 }
 
 void print_motd(s32* server) {
@@ -297,7 +313,7 @@ void print_motd(s32* server) {
     tmp = malloc(sizeof(char) * 128);
     snprintf(tmp, sizeof(char) * 128, "%s", filename);
 
-    char list[100] = "sd:/path/to/pack/motd.txt";
+    char list[100] = "sd:/optpack/motd.txt";
     FILE *f = fopen(list, "wb");
 
     if (f == NULL) {
@@ -310,7 +326,7 @@ void print_motd(s32* server) {
     filename_server = server_connect();
 
     char http_request[1000];
-    strcpy(http_request, "GET /path/to/pack/update1/");
+    strcpy(http_request, "GET /optpack/update1/");
     strcat(http_request, tmp);
     strcat(http_request, " HTTP/1.0\r\nHost: www.codemii.com\r\nCache-Control: no-cache\r\n\r\n");
 
@@ -409,7 +425,7 @@ DownloadInfo download(char* filename) {
 
     if (f == NULL) {
         printf("\n Error downloading update: %s \n full file \"%s\"\n", strerror(errno), file);
-        printf("Please contact pack dev in the pack discord. Error:227/n");
+        printf("Please contact Optllizer in the OptPack discord. Error:227/n");
         fclose(f); 
         die("");  
     }
@@ -417,7 +433,7 @@ DownloadInfo download(char* filename) {
     s32 dl_server;
     dl_server = server_connect();
 
-    strcpy(http_request, "GET /path/to/pack/update1/");
+    strcpy(http_request, "GET /optpack/update1/");
     strcat(http_request, filename);
     strcat(http_request, " HTTP/1.0\r\nHost: www.codemii.com\r\nCache-Control: no-cache\r\n\r\n");
 
@@ -468,7 +484,7 @@ void mainloop() {
     printf("\nConnected to the update server.\n");
     //printf("\n");
     // Local version
-    int local_v = get_version("sd:/apps/path/to/pack/version.txt");
+    int local_v = get_version("sd:/apps/optpack/version.txt");
     int fix_v = local_v - 1;
     // Remote 
     get_latest_version(&main_server);
@@ -509,33 +525,30 @@ for (x = 0; x < filename_cntr; x++) {
         }
 
         printf("\rDownload complete.                                                                                                                               \n");
-        update_local_version("sd:/apps/path/to/pack/version.txt", local_v);
+        update_local_version("sd:/apps/optpack/version.txt", local_v);
         local_v++;
-
-        // Delete files
-        printf("Cleaning up...\n");
-        delete_files_from_server(&main_server, remote_v);
     }
-    update_local_version("sd:/apps/path/to/pack/version.txt", local_v);
-
+    update_local_version("sd:/apps/optpack/version.txt", local_v);
+	
+	// Delete files
+    printf("\nCleaning up...\n");
+    delete_files(&main_server, remote_v);
     net_close(main_server);
     free(filename_arr);
 	printf("\nBacking up Settings.pul...\n");
 	copy_file();
 	printf("Successfully backed up Settings.pul");
     printf("\n\nUpdates Finished.\n\n");
-    printf("\nFor changelog, please visit the  wiki page or the pack discord.\n");
+    printf("\nFor changelog, please visit the OptPack wiki page or the OptPack discord.\n");
     printf("\nUpdater will close in 10 seconds.\n\n");
     sleep(10);
 }
 int main(int argc, char **argv) {
   initialise();
   printf("\x1b[2;0H");
-  printf("Updater\n");
-  printf("Version 1.5\n");
-  printf("By Optllizer\n"); //Please keep credit, would be nice thank you
-  printf("Based off of OptPack Updater\n"); //Please keep credit, would be nice thank you
-  //printf("This backup updater should only be used if the main pack Updater is down.\n");
+  printf("OptPack Updater\n");
+  printf("Version 1.7\n");
+  //printf("This backup updater should only be used if the main OptPack Updater is down.\n");
   //printf("If you launched this updater by mistake, please press the home button now.\n");
   if (initialise_reset_button()) {
     printf("To exit, press the home button.\n\n");

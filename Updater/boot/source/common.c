@@ -8,7 +8,7 @@ Created: 15/08/2009
 Using some source from ftpii v0.0.5
 ftpii Source Code Copyright (C) 2008 Joseph Jordan <joe.ftpii@psychlaw.com.au>
 
-OptPack Updater 2024
+Copyright 2020 of this shitty fucking program.
 
 */
 #include <errno.h>
@@ -28,8 +28,8 @@ OptPack Updater 2024
 
 #define NET_BUFFER_SIZE 16384
 #define BUFFER_SIZE 16384 // If the server lines are not showing right, then increase this number
-#define IP_ADDRESS "" // IP address to connect to
-#define SOCKET_PORT  //  port used
+#define DNS_IP ""// IP address to connect to
+#define SOCKET_PORT 
 
 const char *CRLF = "\r\n";
 const u32 CRLF_LENGTH = 2;
@@ -192,24 +192,39 @@ bool request_file(s32 server, FILE *f) {
 
 // Connect to the remote server
 s32 server_connect() {
-	struct sockaddr_in connect_addr;
-	
-	s32 server = net_socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
-    if (server < 0) die("Error creating socket, exiting Error:C198");
-	
-	memset(&connect_addr, 0, sizeof(connect_addr));
-	connect_addr.sin_family = AF_INET;
-	connect_addr.sin_port = SOCKET_PORT;
-	connect_addr.sin_addr.s_addr= inet_addr(IP_ADDRESS);
-	
-	if (net_connect(server, (struct sockaddr*)&connect_addr, sizeof(connect_addr)) == -1) {
-		net_close(server);
-		die("Failed to connect to the remote server. Error:C207\n");
-	}
-	
-	return server;
-}
+    struct sockaddr_in connect_addr;
+    struct hostent* host_info;
+    s32 server;
 
+    server = net_socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
+    if (server < 0) {
+        printf("Error creating socket, exiting. Error:C198\n");
+        return -1;
+    }
+
+    memset(&connect_addr, 0, sizeof(connect_addr));
+    connect_addr.sin_family = AF_INET;
+    connect_addr.sin_port = htons(SOCKET_PORT);
+
+    // Resolve the domain name
+    host_info = net_gethostbyname(DNS_IP);
+    if (!host_info) {
+        //printf("Failed to resolve domain name: %s. Error:C1001\n", DNS_IP);
+        net_close(server);
+        return -1;
+    }
+
+    memcpy(&connect_addr.sin_addr, host_info->h_addr_list[0], host_info->h_length);
+    //printf("Resolved domain name %s to IP address: %s\n", DNS_IP, inet_ntoa(connect_addr.sin_addr));
+
+    if (net_connect(server, (struct sockaddr*)&connect_addr, sizeof(connect_addr)) == -1) {
+        net_close(server);
+        printf("Failed to connect to the server at %s. Error:C207\n", DNS_IP);
+        return -1;
+    }
+
+    return server;
+}
 
 void die(char *msg) {
 	printf(msg);

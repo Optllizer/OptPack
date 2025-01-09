@@ -1,12 +1,11 @@
 #include <kamek.hpp>
 #include <MarioKartWii/Audio/AudioManager.hpp>
-#include <MarioKartWii/UI/SectionMgr/SectionMgr.hpp>
+#include <MarioKartWii/UI/Section/SectionMgr.hpp>
 #include <Sound/MiscSound.hpp>
 #include <SlotExpansion/CupsConfig.hpp>
 #include <SlotExpansion/UI/ExpansionUIMisc.hpp>
 #include <Settings/Settings.hpp>
 
-/*OptPack Note: This adds a toggle for pack music to either disable or enable custom brstms in My Stuff or the music that comes with the pack*/
 
 namespace Pulsar {
 namespace Sound {
@@ -22,10 +21,10 @@ s32 CheckBRSTM(const nw4r::snd::DVDSoundArchive* archive, PulsarId id, bool isFi
     char trackName[0x100];
     UI::GetTrackBMG(trackName, id);
     snprintf(pulPath, 0x100, "%sstrm/%s%s.brstm", root, trackName, lapSpecifier);
-    ret = DVDConvertPathToEntryNum(pulPath);
+    ret = DVD::ConvertPathToEntryNum(pulPath);
     if(ret < 0) {
         snprintf(pulPath, 0x50, "%sstrm/%d%s.brstm", root, CupsConfig::ConvertTrack_PulsarIdToRealId(id), lapSpecifier);
-        ret = DVDConvertPathToEntryNum(pulPath);
+        ret = DVD::ConvertPathToEntryNum(pulPath);
     }
     return ret;
 }
@@ -33,10 +32,10 @@ s32 CheckBRSTM(const nw4r::snd::DVDSoundArchive* archive, PulsarId id, bool isFi
 nw4r::ut::FileStream* MusicSlotsExpand(nw4r::snd::DVDSoundArchive* archive, void* buffer, int size,
     const char* extFilePath, u32 r7, u32 length) {
     
-    u8 isBRSTMOn = Settings::Mgr::GetSettingValue(Settings::SETTINGSTYPE_RACE, SETTINGRACE_RADIO_BRSTM);
+    u8 isBRSTMOn = Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_RACE, SETTINGRACE_RADIO_BRSTM);
     const char firstChar = extFilePath[0xC];
-    const PulsarId track = CupsConfig::sInstance->winningCourse;
     const CupsConfig* cupsConfig = CupsConfig::sInstance;
+    const PulsarId track = cupsConfig->GetWinning();
     if((firstChar == 'n' || firstChar == 'S' || firstChar == 'r') && !CupsConfig::IsReg(track) && isBRSTMOn == RACESETTING_BRSTM_ENABLED) {
         bool isFinalLap = false;
         register u32 strLength;

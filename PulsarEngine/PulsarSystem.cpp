@@ -1,40 +1,21 @@
-#include "types.hpp"
 #include <core/RK/RKSystem.hpp>
 #include <core/nw4r/ut/Misc.hpp>
-#include <core/rvl/dvd/dvd.hpp>
-#include <core/egg/dvd/DvdRipper.hpp>
+#include <MarioKartWii/Scene/RootScene.hpp>
+#include <MarioKartWii/GlobalFunctions.hpp>
+#include <MarioKartWii/RKNet/RKNetController.hpp>
 #include <PulsarSystem.hpp>
-
+#include <Extensions/LECODE/LECODEMgr.hpp>
+#include <Gamemodes/KO/KOMgr.hpp>
+#include <Gamemodes/KO/KOHost.hpp>
+#include <Gamemodes/OnlineTT/OnlineTT.hpp>
 #include <Settings/Settings.hpp>
-#include <Debug/Debug.hpp>
-#include <IO/IO.hpp>
+#include <Config.hpp>
 #include <SlotExpansion/CupsConfig.hpp>
-
-/*OptPack Note: The reason all folders are lowercase is because the optpack updater has issues with uppercase folders and I don't wanna run into issues. theres 0 difference.*/
-
-
+#include <core/egg/DVD/DvdRipper.hpp>
 namespace Pulsar {
 
 System* System::sInstance = nullptr;
 System::Inherit* System::inherit = nullptr;
-
-
-//Create Pulsar
-ConfigFile* ConfigFile::LoadConfig(u32* readBytes) {
-    EGG::ExpHeap* mem2Heap = RKSystem::mInstance.sceneManager->currentScene->mem2Heap;
-    ConfigFile* conf = static_cast<ConfigFile*>(EGG::DvdRipper::LoadToMainRAM("binaries/Config.pul", nullptr, mem2Heap,
-        EGG::DvdRipper::ALLOC_FROM_HEAD, 0, readBytes, nullptr));
-
-    if(conf == nullptr) Debug::FatalError(error);
-    else {
-        if(conf->header.version < 0) Debug::FatalError("Cannot use a \"Build Config Only\" file, please build full or with tracks.");
-        if(conf->header.version != conf->header.curVersion) Debug::FatalError("Old Config.pul file, please import and export it on the creator software to update it.");
-        ConfigFile::CheckSection(conf->GetSection<InfoHolder>());
-        ConfigFile::CheckSection(conf->GetSection<CupsHolder>());
-        ConfigFile::CheckSection(conf->GetSection<PulBMG>());
-    }
-    return conf;
-}
 
 void System::CreateSystem() {
     if(sInstance != nullptr) return;
@@ -46,18 +27,19 @@ void System::CreateSystem() {
     }
     else system = new System();
     System::sInstance = system;
-    u32 readBytes;
-    ConfigFile* conf = ConfigFile::LoadConfig(&readBytes);
-    system->Init(*conf);
+    ConfigFile& conf = ConfigFile::LoadConfig();
+    system->Init(conf);
     prev->BecomeCurrentHeap();
-    conf->Destroy(readBytes);
+    conf.Destroy();
 }
+//kmCall(0x80543bb4, System::CreateSystem);
 BootHook CreateSystem(System::CreateSystem, 0);
 
 System::System() :
     heap(RKSystem::mInstance.EGGSystem), taskThread(EGG::TaskThread::Create(8, 0, 0x4000, this->heap)),
-    //Track blocking 
-    racesPerGP(3), curBlockingArrayIdx(0) {}
+    //Modes
+    koMgr(nullptr), ottHideNames(false) {
+}
 
 void System::Init(const ConfigFile& conf) {
     IOType type = IOType_ISO;
@@ -76,7 +58,12 @@ void System::Init(const ConfigFile& conf) {
     }
     strncpy(this->modFolderName, conf.header.modFolderName, IOS::ipcMaxFileName);
 
-    this->InitInstances(conf, type);
+    //InitInstances
+    CupsConfig::sInstance = new CupsConfig(conf.GetSection<CupsHolder>());
+    this->info.Init(conf.GetSection<InfoHolder>().info);
+    this->InitIO(type);
+    this->InitSettings(&conf.GetSection<CupsHolder>().trophyCount[0]);
+
 
     //Initialize last selected cup and courses
     const PulsarCupId last = Settings::Mgr::sInstance->GetSavedSelectedCup();
@@ -84,18 +71,16 @@ void System::Init(const ConfigFile& conf) {
     cupsConfig->SetLayout();
     if(last != -1 && cupsConfig->IsValidCup(last) && cupsConfig->GetTotalCupCount() > 8) {
         cupsConfig->lastSelectedCup = last;
-        cupsConfig->selectedCourse = static_cast<PulsarId>(cupsConfig->ConvertTrack_PulsarCupToTrack(last, 0));
+        cupsConfig->SetSelected(cupsConfig->ConvertTrack_PulsarCupToTrack(last, 0));
         cupsConfig->lastSelectedCupButtonIdx = last & 1;
     }
 
     //Track blocking 
-    Info* info = Info::sInstance;
-    u32 trackBlocking = info->GetTrackBlocking();
-    lastTracks = new PulsarId[trackBlocking];
-    for(int i = 0; i < trackBlocking; ++i) lastTracks[i] = PULSARID_NONE;
-
+    u32 trackBlocking = this->info.GetTrackBlocking();
+    this->netMgr.lastTracks = new PulsarId[trackBlocking];
+    for(int i = 0; i < trackBlocking; ++i) this->netMgr.lastTracks[i] = PULSARID_NONE;
     const BMGHeader* const confBMG = &conf.GetSection<PulBMG>().header;
-    this->rawBmg = EGG::Heap::alloc<BMGHeader>(confBMG->fileLength, 0x4, heap);
+    this->rawBmg = EGG::Heap::alloc<BMGHeader>(confBMG->fileLength, 0x4, RootScene::sInstance->expHeapGroup.heaps[1]);
     memcpy(this->rawBmg, confBMG, confBMG->fileLength);
     this->customBmgs.Init(*this->rawBmg);
     this->AfterInit();
@@ -121,30 +106,134 @@ void System::InitIO(IOType type) const {
 }
 #pragma suppress_warnings reset
 
-void System::InitSettings(u32 pageCount, const u16* totalTrophyCount) const {
+void System::InitSettings(const u16* totalTrophyCount) const {
     Settings::Mgr* settings = new (this->heap) Settings::Mgr;
     char path[IOS::ipcMaxPath];
     snprintf(path, IOS::ipcMaxPath, "%s/%s", this->GetModFolder(), "Settings.pul");
-    settings->Init(pageCount, totalTrophyCount, path); //params
+    settings->Init(totalTrophyCount, path); //params
     Settings::Mgr::sInstance = settings;
 }
+
+void System::UpdateContext() {
+    const RacedataSettings& racedataSettings = Racedata::sInstance->menusScenario.settings;
+    this->ottMgr.Reset();
+    const Settings::Mgr& settings = Settings::Mgr::Get();
+    bool isCT = true;
+    bool isHAW = false;
+    bool isKO = false;
+    bool isOTT = false;
+    bool isMiiHeads = settings.GetSettingValue(Settings::SETTINGSTYPE_RACE, SETTINGRACE_RADIO_MII);
+    bool isRegs = false;
+    bool isRegsOnly = false;
+
+    const RKNet::Controller* controller = RKNet::Controller::sInstance;
+    const GameMode mode = racedataSettings.gamemode;
+    Network::Mgr& netMgr = this->netMgr;
+    const u32 sceneId = GameScene::GetCurrent()->id;
+
+
+    bool is200 = racedataSettings.engineClass == CC_100 && this->info.Has200cc();
+    bool isFeather = this->info.HasFeather();
+    bool isUMTs = this->info.HasUMTs();
+    bool isMegaTC = this->info.HasMegaTC();
+    u32 newContext = 0;
+    if(sceneId != SCENE_ID_GLOBE && controller->connectionState != RKNet::CONNECTIONSTATE_SHUTDOWN) {
+        switch(controller->roomType) {
+            case(RKNet::ROOMTYPE_VS_REGIONAL):
+            case(RKNet::ROOMTYPE_JOINING_REGIONAL):
+                isOTT = netMgr.ownStatusData == true;
+                break;
+            case(RKNet::ROOMTYPE_FROOM_HOST):
+            case(RKNet::ROOMTYPE_FROOM_NONHOST):
+                isCT = mode != MODE_BATTLE && mode != MODE_PUBLIC_BATTLE && mode != MODE_PRIVATE_BATTLE;
+                newContext = netMgr.hostContext;
+                isHAW = newContext & (1 << PULSAR_HAW);
+                isKO = newContext & (1 << PULSAR_MODE_KO);
+                isOTT = newContext & (1 << PULSAR_MODE_OTT);
+                isMiiHeads = newContext & (1 << PULSAR_MIIHEADS);
+                isRegs = newContext & (1 << PULSAR_REGS);
+                isRegsOnly = newContext & (1 << PULSAR_REGSONLY);
+                if(isOTT) {
+                    isUMTs &= newContext & (1 << PULSAR_UMTS);
+                    isFeather &= newContext & (1 << PULSAR_FEATHER);
+                }
+                break;
+            default: isCT = false;
+        }
+    }
+    else {
+        const u8 ottOffline = settings.GetSettingValue(Settings::SETTINGSTYPE_OTT, SETTINGOTT_OFFLINE);
+        isOTT = (mode == MODE_GRAND_PRIX || mode == MODE_VS_RACE) ? (ottOffline != OTTSETTING_OFFLINE_DISABLED) : false; //offlineOTT
+        if(isOTT) {
+            isFeather &= (ottOffline == OTTSETTING_OFFLINE_FEATHER);
+            isUMTs &= ~settings.GetSettingValue(Settings::SETTINGSTYPE_OTT, SETTINGOTT_ALLOWUMTS);
+        }
+    }
+    this->netMgr.hostContext = newContext;
+
+    u32 context = (isCT << PULSAR_CT) | (isHAW << PULSAR_HAW) | (isMiiHeads << PULSAR_MIIHEADS) | (isRegs << PULSAR_REGS) | (isRegsOnly << PULSAR_REGSONLY);
+    if(isCT) { //contexts that should only exist when CTs are on
+        context |= (is200 << PULSAR_200) | (isFeather << PULSAR_FEATHER) | (isUMTs << PULSAR_UMTS) | (isMegaTC << PULSAR_MEGATC) | (isOTT << PULSAR_MODE_OTT) | (isKO << PULSAR_MODE_KO);
+    }
+    this->context = context;
+
+    //Create temp instances if needed:
+    /*
+    if(sceneId == SCENE_ID_RACE) {
+        if(this->lecodeMgr == nullptr) this->lecodeMgr = new (this->heap) LECODE::Mgr;
+    }
+    else if(this->lecodeMgr != nullptr) {
+        delete this->lecodeMgr;
+        this->lecodeMgr = nullptr;
+    }
+    */
+
+    if(isKO) {
+        if(sceneId == SCENE_ID_MENU && SectionMgr::sInstance->sectionParams->onlineParams.currentRaceNumber == -1) this->koMgr = new (this->heap) KO::Mgr; //create komgr when loading the select phase of the 1st race of a froom
+    }
+    if(!isKO && this->koMgr != nullptr || isKO && sceneId == SCENE_ID_GLOBE) {
+        delete this->koMgr;
+        this->koMgr = nullptr;
+    }
+}
+
+s32 System::OnSceneEnter(Random& random) {
+    System* self = System::sInstance;
+    self->UpdateContext();
+    //if(self->IsContext(PULSAR_MODE_OTT)) OTT::AddGhostToVS();
+    if(self->IsContext(PULSAR_HAW) && self->IsContext(PULSAR_MODE_KO) && GameScene::GetCurrent()->id == SCENE_ID_RACE && SectionMgr::sInstance->sectionParams->onlineParams.currentRaceNumber > 0) {
+        KO::HAWChangeData();
+    }
+    return random.NextLimited(8);
+}
+kmCall(0x8051ac40, System::OnSceneEnter);
 
 asmFunc System::GetRaceCount() {
     ASM(
         nofralloc;
     lis r5, sInstance@ha;
     lwz r5, sInstance@l(r5);
-    lbz r0, System.racesPerGP(r5);
+    lbz r0, System.netMgr.racesPerGP(r5);
     blr;
-    )
+        )
 }
+
+asmFunc System::GetNonTTGhostPlayersCount() {
+    ASM(
+        nofralloc;
+    lis r12, sInstance@ha;
+    lwz r12, sInstance@l(r12);
+    lbz r29, System.nonTTGhostPlayersCount(r12);
+    blr;
+        )
+}
+
 //Unlock Everything Without Save (_tZ)
 kmWrite32(0x80549974, 0x38600001);
 
 //Skip ESRB page
-kmWriteRegionInstruction(0x80604094, 0x4800001c, 'E');
+kmRegionWrite32(0x80604094, 0x4800001c, 'E');
 
-const char ConfigFile::error[] = "Invalid Pulsar Config";
 const char System::pulsarString[] = "/Pulsar";
 const char System::CommonAssets[] = "/CommonAssets.szs";
 const char System::breff[] = "/Effect/Pulsar.breff";

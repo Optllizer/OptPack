@@ -34,7 +34,7 @@ struct RKGHeader {
     bool compressed : 1; //0xC.4
     u32 unknown_3 : 2; //0xC.5
     GhostType ghostType : 7; //0xC.7
-    bool driftType : 1; //0xD.6
+    u8 driftType : 1; //0xD.6
     u32 unknown_4 : 1;
     u16 inputSectionLength; //uncompressed length 0xE
     u32 lapCount : 1;
@@ -48,15 +48,6 @@ struct RKGHeader {
 }; //total size 0x88
 size_assert(RKGHeader, 0x88);
 
-struct RKGInputData{
-    u16 faceButtonInputsCount;
-    u16 directionInputsCount;
-    u16 trickInputsCount;
-    u16 unknown_0x6; //padding
-    u8 unknown_0x8[0x2774-0x8]; //idk how to do that in c++
-}; //total size 0x2774
-
-
 struct CompressedRKG {
     RKGHeader header;
     u32 dataLength;
@@ -66,6 +57,7 @@ struct CompressedRKG {
 
 class RKG {
 public:
+
     void ClearBuffer(); //8051c088
     bool CheckHeader() const; //8051c094 inlined checks magic, character, kart, year, day, month
     bool CheckValidity() const; //8051c120
