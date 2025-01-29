@@ -106,6 +106,7 @@ static void BattleGlitchEnable() {
 RaceFrameHook BattleGlitch(BattleGlitchEnable);
 
 kmWrite32(0x8085C914, 0x38000000); //times at the end of races in VS
+/*
 static void DisplayTimesInsteadOfNames(CtrlRaceResult& result, u8 id) {
 
     if(Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_MENU, SETTINGMENU_RADIO_TIMES) == MENUSETTING_TIMES_DISABLED)
@@ -120,7 +121,7 @@ static void DisplayTimesInsteadOfNames(CtrlRaceResult& result, u8 id) {
     if (System::sInstance->IsContext(PULSAR_MODE_OTT) && isOTTWW)
     result.FillFinishTime(id);
 }
-kmCall(0x8085d460, DisplayTimesInsteadOfNames); //for WWs
+kmCall(0x8085d460, DisplayTimesInsteadOfNames); //for WWs*/
 
 //don't hide position tracker (MrBean35000vr)
 kmWrite32(0x807F4DB8, 0x38000001);

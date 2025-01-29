@@ -162,7 +162,8 @@ void CupsConfig::ToggleCTs(bool enabled) {
     } else {
         count = definedCTsCupCount;
         hasRegs = (RKNet::Controller::sInstance->roomType != RKNet::ROOMTYPE_VS_REGIONAL) &&
-                  (RKNet::Controller::sInstance->roomType != RKNet::ROOMTYPE_JOINING_REGIONAL);
+                  (RKNet::Controller::sInstance->roomType != RKNet::ROOMTYPE_JOINING_REGIONAL) ||
+                  (RKNet::Controller::sInstance->connectionState == RKNet::CONNECTIONSTATE_SHUTDOWN);
     }
 
     ctsCupCount = count;
