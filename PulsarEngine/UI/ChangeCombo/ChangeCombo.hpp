@@ -25,15 +25,34 @@ public:
     static_assert(randomDuration % 4 == 0, "Random Combo Duration");
     ExpVR();
     void OnInit() override;
+
+    void OnButtonSelect(PushButton& button, u32 hudSlotId);
+    void OnActivate() override;
+    s32 rouletteCounter;
+    CountDown countdown;
+    CountDownTimerControl countdownControl;
 private:
     void RandomizeComboVR(PushButton& button, u32 hudSlotId);
     void ChangeCombo(PushButton& button, u32 hudSlotId);
+
+    void OnSettingsButtonClick(PushButton& button, u32 hudSlotId);
+    void ExtOnButtonSelect(PushButton& button, u32 hudSlotId);
+    static void CreateAndInitPage(ExpSection& self, u32 id);
+    PtmfHolder_2A<ExpVR, void, PushButton&, u32> onButtonSelectHandler;
+    PtmfHolder_2A<ExpVR, void, PushButton&, u32> onSettingsClick;
+
     PtmfHolder_2A<ExpVR, void, PushButton&, u32> onRandomComboClick; //0x192c
     PtmfHolder_2A<ExpVR, void, PushButton&, u32> onChangeComboClick;
     PushButton randomComboButton;
     PushButton changeComboButton;
+
+    PushButton settingsButton;
 public:
     u8 comboButtonState; //1 = randomize, 2 = change
+    PulPageId topSettingsPage;
+    bool areControlsHidden;
+    PageId nextPageId; //when you press a button
+    u8 menuState;
 };
 
 class ExpCharacterSelect : public Pages::CharacterSelect {

@@ -168,6 +168,10 @@ void SettingsPanel::OnActivate() {
     this->externControls[0]->SelectInitial(0);
     this->bottomText->SetMessage(BMG_SETTINGS_BOTTOM); //no need for any offset here as this is the default "save" bottom msg
 
+    bool isVotingSection = (id >= SECTION_P1_WIFI_FROOM_VS_VOTING && id <= SECTION_P2_WIFI_FROOM_COIN_VOTING) 
+    || (id == SECTION_P1_WIFI_VS_VOTING);
+
+
     this->externControls[1]->SetMessage(BMG_SETTINGS_PAGE + this->GetNextBMGOffset(1));
     this->externControls[2]->SetMessage(BMG_SETTINGS_PAGE + this->GetNextBMGOffset(-1));
     for(int i = 0; i < Settings::Params::maxRadioCount; ++i) {
@@ -209,10 +213,39 @@ void SettingsPanel::OnActivate() {
             valueControl.activeTextValueControl->SetMessage((scroller.id + 1 << 4) + bmgCategory);
         }
 
-
-
     }
     MenuInteractable::OnActivate();
+
+        if(isVotingSection) {
+        if (this->sheetIdx == Settings::SETTINGSTYPE_KO || 
+            this->sheetIdx == Settings::SETTINGSTYPE_OTT ||
+            this->sheetIdx == Settings::SETTINGSTYPE_HOST) {
+            return;
+        }
+}
+        for(int i = 0; i < Settings::Params::maxScrollerCount; ++i) {
+            UpDownControl& upDown = this->upDownControls[i];
+            TextUpDownValueControl& text = this->textUpDown[i];
+        
+        if(isVotingSection) {
+            // Hide scrollers and make them completely inaccessible
+            upDown.isHidden = true;
+            upDown.manipulator.inaccessible = true;
+            text.isHidden = true;
+        } else {
+            bool isDisabled = i >= Settings::Params::scrollerCount[this->sheetIdx];
+            upDown.isHidden = isDisabled;
+            upDown.manipulator.inaccessible = isDisabled;
+            text.isHidden = isDisabled;
+        }
+    }
+
+    for(int i = 0; i < Settings::Params::maxRadioCount; ++i) {
+        RadioButtonControl& radio = this->radioButtonControls[i];
+        bool isDisabled = i >= Settings::Params::radioCount[this->sheetIdx];
+        radio.isHidden = isDisabled;
+        radio.manipulator.inaccessible = isDisabled;
+    }
 }
 
 const ut::detail::RuntimeTypeInfo* SettingsPanel::GetRuntimeTypeInfo() const {
@@ -294,8 +327,21 @@ void SettingsPanel::OnLeftButtonClick(PushButton& button, u32 hudSlotId) {
 }
 
 void SettingsPanel::OnButtonClick(PushButton& button, u32 direction) {
+    SectionId id = SectionMgr::sInstance->curSection->sectionId;
+    bool isVotingSection = (id >= SECTION_P1_WIFI_FROOM_VS_VOTING && id <= SECTION_P2_WIFI_FROOM_COIN_VOTING) 
+                          || (id == SECTION_P1_WIFI_VS_VOTING);
+    int nextIdx = this->GetNextSheetIdx(direction);
+    
+    // Skip restricted pages in voting sections
+    if(isVotingSection) {
+        while (nextIdx == Settings::SETTINGSTYPE_KO || 
+               nextIdx == Settings::SETTINGSTYPE_OTT ||
+               nextIdx == Settings::SETTINGSTYPE_HOST) {
+            nextIdx = (nextIdx + direction + Settings::Params::pageCount) % Settings::Params::pageCount;
+        }
+    }
+
     this->nextPageId = this->pageId;
-    const int nextIdx = this->GetNextSheetIdx(direction);
     this->sheetIdx = nextIdx;
     if(nextIdx < Settings::Params::pulsarPageCount) {
         this->catIdx = nextIdx;

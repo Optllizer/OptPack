@@ -1870,6 +1870,14 @@ TimerToTextInfo__FRC5TimerRQ24Text4Info = 0x808608e4
 DeactivateTc__Q24Kart8MovementFv = 0x80581a40
 volumes__Q25Audio16PlayersVolumeMgr = 0x809c26b8
 
+GetCurrentContext__2OSFv = 0x801a1ecc
+OnButtonClick__Q25Pages2VRFR10PushButtonUi = 0x8064ae6c
+HandleDeselect__18RadioButtonControlFUiUi = 0x80606434
+HandleSelect__18RadioButtonControlFUiUi = 0x806062d8
+HandleClick__18RadioButtonControlFUiUi = 0x80606620
+HandleDeselect__13UpDownControlFUiUi = 0x8063f7c4
+OnActivate__Q36Pulsar2UI5ExpVRFv = 0x8064a84c
+
 Blurry = 0x8016fba0
 U32_RBBG_HOOK_PT1= 0x802575DF
 U32_RBBG_HOOK_PT2= 0x80258184
@@ -1911,3 +1919,23 @@ GetNextPage__Q25Pages19WWLeaderboardUpdateCFv = 0x8085d55c
 ResetTextBoxMessage__15LayoutUIControlFPCc = 0x8063deec
 wcscmp = 0x80017a14
 wcscpy = 0x800179b4
+
+Real_DWCi_Auth_SendRequest = 0x800ed6ec
+Real_DWCi_Auth_SendRequest = 0x800ed6ec
+s_auth_work = 0x8038633c
+s_auth_error = 0x802f1cB8
+NHTTPDestroyResponse__FPv = 0x801d92f8
+NHTTPSendRequestAsync__FPv = 0x801d925c
+NHTTPCreateRequest__FPCciPvUiPvPv = 0x801d8ff8
+
+__ptmf_test = 0x800213e4
+WWFC_CUSTOM_REGION = 0x80005efc
+
+RemoveTopLayerPage__7SectionFv = 0x80623288
+__ct__18ManipulatorManagerFv = 0x805eeb68
+__dt__18ManipulatorManagerFv = 0x805eeb8c
+__ct__12FriendButtonFv = 0x805d380c
+__dt__12FriendButtonFv = 0x805d3850
+#YesNoMessageBox
+SetMessageBoxMsg__Q25Pages5YesNoFUiPQ24Text4Info = 0x806525fc
+PrepareButton__Q25Pages5YesNoFUiUiPQ24Text4InfoUiRC39PtmfHolder_2A<4Page,v,Ui,R10PushButton> = 0x80652604

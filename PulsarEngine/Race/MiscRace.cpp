@@ -150,8 +150,8 @@ kmWrite32(0x807bd2bc, 0x38000000); //RaceGlobals
 kmWrite32(0x807f18c8, 0x38000000); //TC alert*/
 
 //Accurate Explosion Damage (MrBean, CLF)
-kmWrite16(0x80572690, 0x4800);
-kmWrite16(0x80569F68, 0x4800);
+//kmWrite16(0x80572690, 0x4800);
+//kmWrite16(0x80569F68, 0x4800);
 
 //CtrlItemWindow
 kmWrite24(0x808A9C16, 'PUL'); //item_window_new -> item_window_PUL
@@ -243,6 +243,9 @@ kmWrite32(0x8064DB2C,0x60000000);
 
 //Don't Lose VR When Disconnecting by Bully
 kmWrite32(0x80856560, 0x60000000);
+
+//Disable Data Reset by Vega
+kmWrite32(0x80544928, 0x7C601B78);
 
 //HUD Color Modifier by Spaghetti Noppers
 kmWrite32(0x80895CC0, 0x00200086); 

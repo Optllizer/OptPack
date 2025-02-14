@@ -29,7 +29,7 @@ u8 Params::optionsPerPagePerScroller[Params::pageCount][Params::maxScrollerCount
 {
     { 5, 7, 0, 0, 0}, //Menu 
     { 4, 0, 0, 0, 0}, //Race
-    { 7, 0, 0, 0, 0}, //Host
+    { 15, 0, 0, 0, 0}, //Host
     { 0, 0, 0, 0, 0}, //OTT
     { 4, 4, 0, 0, 0}, //KO
     { 0, 0, 0, 0, 0}, //Menu2

@@ -50,6 +50,10 @@ void LoadCorrectPageAfterMultiDrift(Pages::MultiDriftSelect* page, u32 animDirec
         }
         handler.toSendPacket.allowChangeComboStatus = Network::SELECT_COMBO_SELECTED;
     }
+    else if(sectionMgr->curSection->Get<Pages::VR>() != nullptr && page->nextPageId == static_cast<PageId>(PULPAGE_SETTINGS)) {
+        ExpSection::GetSection()->CreateAndInitPage(*ExpSection::GetSection(), PULPAGE_SETTINGS);
+        return;
+    }
     else if(sectionMgr->curSection->Get<Pages::VR>() != nullptr) {
         page->nextPageId = IsBattle() ? PAGE_BATTLE_CUP_SELECT : PAGE_CUP_SELECT;
     }

@@ -1,12 +1,26 @@
 #include <kamek.hpp>
 #include <core/rvl/DWC/DWC.hpp>
 #include <PulsarSystem.hpp>
+#include <Settings/Settings.hpp>
+#include <Network/WiiLink.hpp>
 
 namespace Pulsar {
 namespace Network {
 //Region Patch (Leseratte)
+
+static u32 region = 0x36B;
+
+static void PatchRegionNumber() {
+    if (System::sInstance->IsContext(PULSAR_MODE_OTT)) {
+        region = 0x36C;
+    } else {
+        region = 0x36B;
+    }
+}
+static PageLoadHook RegionNumberPatch(PatchRegionNumber);
+
 static void PatchLoginRegion() {
-    u32 region = System::sInstance->GetInfo().GetWiimmfiRegion();
+    WWFC_CUSTOM_REGION = region;
     char path[0x9];
     snprintf(path, 0x9, "%08d", region + 100000);
     for(int i = 0; i < 8; ++i) {
@@ -16,19 +30,19 @@ static void PatchLoginRegion() {
 BootHook LoginRegion(PatchLoginRegion, 2);
 
 
-PatchRegion(0x8065920c);
-PatchRegion(0x80659260);
-PatchRegion(0x80659724);
-PatchRegion(0x80659778);
+// PatchRegion(0x8065920c);
+// PatchRegion(0x80659260);
+// PatchRegion(0x80659724);
+// PatchRegion(0x80659778);
 
-/*int PatchRegion(char* path, u32 len, const char* fmt, const char* mode) {
+int PatchRegion(char* path, u32 len, const char* fmt, const char* mode) {
     const Info& info = System::sInstance->GetInfo();
-    return snprintf(path, len, fmt, mode, info.GetWiimmfiRegion());
+    return snprintf(path, len, fmt, mode, region);
 }
 kmCall(0x8065921c, PatchRegion);
 kmCall(0x80659270, PatchRegion);
 kmCall(0x80659734, PatchRegion);
-kmCall(0x80659788, PatchRegion);*/
+kmCall(0x80659788, PatchRegion);
 
 
 //kmWrite32(0x8065a038, 0x7C050378);
@@ -36,7 +50,6 @@ kmCall(0x80659788, PatchRegion);*/
 static int GetFriendsSearchType(int curType, u32 regionId) {
     register u8 friendRegionId;
     asm(mr friendRegionId, r0;);
-    u8 region = System::sInstance->GetInfo().GetWiimmfiRegion();
     if(region != friendRegionId) return curType;
     else if(curType == 7) return 6;
     else return 9;
@@ -47,7 +60,7 @@ kmBranch(0x8065a088, GetFriendsSearchType);
 
 
 static u32 PatchRKNetControllerRegion() {
-    return System::sInstance->GetInfo().GetWiimmfiRegion();
+    return region;
 }
 kmCall(0x80653640, PatchRKNetControllerRegion);
 kmWrite32(0x80653644, 0x7c651b78);

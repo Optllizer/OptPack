@@ -214,7 +214,7 @@ void GlobeMsgColor(Pages::Globe::MessageWindow& msg, u32 bmgId, Text::Info* info
 kmCall(0x805e504c, GlobeMsgColor);
 
 void GlobeSearchTopMsg(CtrlMenuPageTitleText& title, u32 bmgId, Text::Info* info) {
-    if(System::sInstance->netMgr.ownStatusData == true) bmgId = UI::BMG_OTT_TITLE_TEXT;
+    if(System::sInstance->IsContext(PULSAR_MODE_OTT) == Pulsar::OTTSETTING_ONLINE_NORMAL) bmgId = UI::BMG_OTT_TITLE_TEXT;
     title.SetMessage(bmgId, info);
 }
 kmCall(0x80608658, GlobeSearchTopMsg);

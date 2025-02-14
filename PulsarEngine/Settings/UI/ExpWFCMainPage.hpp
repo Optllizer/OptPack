@@ -7,9 +7,14 @@
 //Extends WFCMainMenu to add a settings button
 namespace Pulsar {
 namespace UI {
+
 class ExpWFCMain : public Pages::WFCMainMenu {
 public:
-    ExpWFCMain();
+    ExpWFCMain() {
+        this->onSettingsClick.subject = this;
+        this->onSettingsClick.ptmf = &ExpWFCMain::OnSettingsButtonClick;
+        this->onButtonSelectHandler.ptmf = &ExpWFCMain::ExtOnButtonSelect;
+    }
     void OnInit() override;
 private:
     void OnSettingsButtonClick(PushButton& PushButton, u32 r5);
@@ -22,14 +27,22 @@ public:
 
 class ExpWFCModeSel : public Pages::WFCModeSelect {
 public:
-    ExpWFCModeSel();
-    static void InitOTTButton(ExpWFCModeSel& self);
+    ExpWFCModeSel() : lastClickedButton(0), region(0xA) {
+        this->onButtonSelectHandler.ptmf = &ExpWFCModeSel::OnModeButtonSelect;
+        this->onModeButtonClickHandler.ptmf = &ExpWFCModeSel::OnModeButtonClick;
+    }
+    void OnInit() override;
+    // void BeforeControlUpdate() override;
+    static void InitButton(ExpWFCModeSel& self);
     static void OnActivatePatch();
-private:
+    static void ClearModeContexts();
+public:
     void OnModeButtonSelect(PushButton& modeButton, u32 hudSlotId); //8064c718
     void OnModeButtonClick(PushButton& PushButton, u32 r5);
+
     PushButton ottButton;
     u32 lastClickedButton;
+    u32 region;
     static const u32 ottButtonId = 4;
 };
 }//namespace UI

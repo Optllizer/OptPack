@@ -43,7 +43,7 @@ public:
     static void dumpAll();
     Heap* BecomeCurrentHeap() const; //returns old heap there's an unused r4 arg
     Heap* becomeCurrentHeapWithoutLocking();
-private:
+public:
     MEM::iHeapHead* rvlHeap; //0x10
     void* parentHeapMBlock; //0x14
     Heap* parentHeap; //0x18

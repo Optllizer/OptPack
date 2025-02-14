@@ -4,6 +4,7 @@
 #include <UI/ChangeCombo/ChangeCombo.hpp>
 #include <PulsarSystem.hpp>
 #include <Gamemodes/KO/KOMgr.hpp>
+#include <Settings/UI/SettingsPanel.hpp>
 
 namespace Pulsar {
 namespace UI {
@@ -15,13 +16,18 @@ ExpVR::ExpVR() : comboButtonState(0) {
     this->onRandomComboClick.ptmf = &ExpVR::RandomizeComboVR;
     this->onChangeComboClick.subject = this;
     this->onChangeComboClick.ptmf = &ExpVR::ChangeCombo;
+
+    this->onSettingsClick.subject = this;
+    this->onSettingsClick.ptmf = &ExpVR::OnSettingsButtonClick;
+    this->onButtonSelectHandler.subject = this;
+    this->onButtonSelectHandler.ptmf = &ExpVR::ExtOnButtonSelect;
 }
 
 kmWrite32(0x8064a61c, 0x60000000); //nop initControlGroup
 
 kmWrite24(0x808998b3, 'PUL'); //WifiMemberConfirmButton -> PULiMemberConfirmButton
 void ExpVR::OnInit() {
-    this->InitControlGroup(0x11);
+    this->InitControlGroup(0x12);
     VR::OnInit();
 
     const System* system = System::sInstance;
@@ -30,7 +36,7 @@ void ExpVR::OnInit() {
 
     this->AddControl(0xF, this->randomComboButton, 0);
     this->randomComboButton.isHidden = true;
-    this->randomComboButton.Load(UI::buttonFolder, "PULiMemberConfirmButton", "Random", 1, 0, true);
+    this->randomComboButton.Load(UI::buttonFolder, "PULiMemberConfirmButton", "Random", 0, 0, true);
     this->randomComboButton.SetOnClickHandler(this->onRandomComboClick, 0);
 
     this->AddControl(0x10, this->changeComboButton, 0);
@@ -39,10 +45,19 @@ void ExpVR::OnInit() {
     this->changeComboButton.SetOnClickHandler(this->onChangeComboClick, 0);
     //this->changeComboButton.manipulator.SetAction(START_PRESS, this->changeComboButton.onClickHandlerObj, 0);
 
-    const Section* section = SectionMgr::sInstance->curSection;
+    this->AddControl(0x11, settingsButton, 0);
+    this->settingsButton.Load(UI::buttonFolder, "PULiMemberConfirmButton", "Random", 1, 0, false);
+    this->settingsButton.buttonId = 5;
+    this->settingsButton.SetOnClickHandler(this->onSettingsClick, 0);
+    this->settingsButton.SetOnSelectHandler(this->onButtonSelectHandler);
+    this->topSettingsPage = SettingsPanel::id;
 
+    const Section* section = SectionMgr::sInstance->curSection;
     Pages::SELECTStageMgr* selectStageMgr = section->Get<Pages::SELECTStageMgr>();
     CountDown* timer = &selectStageMgr->countdown;
+
+    SettingsPanel* settingsPanel = ExpSection::GetSection()->GetPulPage<SettingsPanel>();
+    settingsPanel->timer = timer;
 
     Pages::CharacterSelect* charPage = section->Get<Pages::CharacterSelect>();
     charPage->timer = timer;
@@ -115,6 +130,25 @@ static void RandomizeCombo() {
     }
 }
 
+void ExpVR::OnSettingsButtonClick(PushButton& button, u32 hudSlotId) {
+    this->areControlsHidden = true;
+    SettingsPanel* settingsPanel = ExpSection::GetSection()->GetPulPage<SettingsPanel>();
+    settingsPanel->prevPageId = PAGE_NONE;
+    this->AddPageLayer(static_cast<PageId>(this->topSettingsPage), 0);
+    this->EndStateAnimated(0, button.GetAnimationFrameSize());
+}
+
+void ExpVR::ExtOnButtonSelect(PushButton& button, u32 hudSlotId) {
+    if(button.buttonId == 5) {
+        u32 bmgId = BMG_SETTINGS_BOTTOM + 1;
+        if(this->topSettingsPage == PAGE_VS_TEAMS_VIEW) bmgId += 1;
+        else if(this->topSettingsPage == PAGE_BATTLE_MODE_SELECT) bmgId += 2;
+        this->ctrlMenuBottomMessage.SetMessage(bmgId, 0);
+    }
+    else {
+        this->OnButtonClick(button, hudSlotId);
+    }
+}
 
 void ExpVR::RandomizeComboVR(PushButton& randomComboButton, u32 hudSlotId) {
     this->comboButtonState = 1;
@@ -130,6 +164,9 @@ void ExpVR::ChangeCombo(PushButton& changeComboButton, u32 hudSlotId) {
 static void AddChangeComboPages(Section* section, PageId id) {
     section->CreateAndInitPage(id);
     section->CreateAndInitPage(PAGE_CHARACTER_SELECT);
+
+    section->CreateAndInitPage(static_cast<PageId>(SettingsPanel::id));
+
     bool isBattle = IsBattle();
     PageId kartPage  = PAGE_KART_SELECT;
     PageId driftPage = PAGE_DRIFT_SELECT;
@@ -338,7 +375,18 @@ end:
 }
 kmCall(0x8084e670, LoadCorrectPageAfterDrift);
 
-
+void SettingsPanel::BeforeControlUpdate() {
+    SectionId id = SectionMgr::sInstance->curSection->sectionId;
+    bool isVotingSection = (id >= SECTION_P1_WIFI_FROOM_VS_VOTING && id <= SECTION_P2_WIFI_FROOM_COIN_VOTING) 
+    || (id == SECTION_P1_WIFI_VS_VOTING);
+    if(isVotingSection) {
+        Pages::SELECTStageMgr* selectStageMgr = SectionMgr::sInstance->curSection->Get<Pages::SELECTStageMgr>();
+        CountDown* timer = &selectStageMgr->countdown;
+        if (timer->countdown <=0) {
+            this->OnBackPress(0);
+        }
+    }
+}
 
 }//namespace UI
 }//namespace Pulsar

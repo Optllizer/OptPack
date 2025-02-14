@@ -79,25 +79,25 @@ public:
     //BMG
     const BMGHolder& GetBMG() const { return customBmgs; }
     
-    #define PatchRegion(addr)\
+   /* #define PatchRegion(addr)\
         static inline u64 GetWiimmfiRegionStatic##addr(u64 src) {\
             register const Info *info = &System::sInstance->GetInfo();\
             asmVolatile(lwz r7, Info.wiimmfiRegion(info););\
             return src;\
         };\
         kmBranch(addr, GetWiimmfiRegionStatic##addr);\
-        kmPatchExitPoint(GetWiimmfiRegionStatic##addr, ##addr + 4);
+        kmPatchExitPoint(GetWiimmfiRegionStatic##addr, ##addr + 4);*/
     
     //VARIABLES
     EGG::ExpHeap* const heap; //0x4
     EGG::TaskThread* const taskThread; //0x8
     //Constants
-
+    u32 context;
 private:
     char modFolderName[IOS::ipcMaxFileName + 1]; //0xC
     u8 padding[2];
     Info info; //0x1c
-    u32 context;
+    //u32 context;
 
 public:
     //Network variables only set when reading a ROOM packet that starts the GP; they are only ever used in UpdateState; no need to clear them as ROOM will reupdat ethem

@@ -1,7 +1,7 @@
 #ifndef _NHTTP_
 #define _NHTTP_
 
-#include "types.hpp"
+#include <types.hpp>
 
 s32 NHTTPStartup(void* alloc, void* free, u32 param_3);
 

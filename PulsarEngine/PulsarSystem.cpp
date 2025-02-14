@@ -58,6 +58,9 @@ void System::Init(const ConfigFile& conf) {
     }
     strncpy(this->modFolderName, conf.header.modFolderName, IOS::ipcMaxFileName);
 
+    static char* pulMagic = reinterpret_cast<char*>(0x800017CC); //for RWFC
+    strcpy(pulMagic, "PUL2"); //for RWFC
+    
     //InitInstances
     CupsConfig::sInstance = new CupsConfig(conf.GetSection<CupsHolder>());
     this->info.Init(conf.GetSection<InfoHolder>().info);
@@ -76,7 +79,7 @@ void System::Init(const ConfigFile& conf) {
     }
 
     //Track blocking 
-    u32 trackBlocking = this->info.GetTrackBlocking();
+    u32 trackBlocking = 32;
     this->netMgr.lastTracks = new PulsarId[trackBlocking];
     for(int i = 0; i < trackBlocking; ++i) this->netMgr.lastTracks[i] = PULSARID_NONE;
     const BMGHeader* const confBMG = &conf.GetSection<PulBMG>().header;
@@ -171,11 +174,14 @@ void System::UpdateContext() {
     }
     this->netMgr.hostContext = newContext;
 
-    u32 context = (isCT << PULSAR_CT) | (isHAW << PULSAR_HAW) | (isMiiHeads << PULSAR_MIIHEADS) | (isRegs << PULSAR_REGS) | (isRegsOnly << PULSAR_REGSONLY);
+    u32 preserved = this->context & ((1 << PULSAR_MODE_OTT));
+    
+    u32 newContextValue = (isCT << PULSAR_CT) | (isHAW << PULSAR_HAW) | (isMiiHeads << PULSAR_MIIHEADS) | (isRegs << PULSAR_REGS) | (isRegsOnly << PULSAR_REGSONLY);
     if(isCT) { //contexts that should only exist when CTs are on
-        context |= (is200 << PULSAR_200) | (isFeather << PULSAR_FEATHER) | (isUMTs << PULSAR_UMTS) | (isMegaTC << PULSAR_MEGATC) | (isOTT << PULSAR_MODE_OTT) | (isKO << PULSAR_MODE_KO);
+        newContextValue |= (is200 << PULSAR_200) | (isFeather << PULSAR_FEATHER) | (isUMTs << PULSAR_UMTS) | (isMegaTC << PULSAR_MEGATC) | (isOTT << PULSAR_MODE_OTT) | (isKO << PULSAR_MODE_KO);
     }
-    this->context = context;
+
+    this->context = newContextValue | preserved;
 
     //Create temp instances if needed:
     /*
@@ -196,7 +202,6 @@ void System::UpdateContext() {
         this->koMgr = nullptr;
     }
 }
-
 s32 System::OnSceneEnter(Random& random) {
     System* self = System::sInstance;
     self->UpdateContext();

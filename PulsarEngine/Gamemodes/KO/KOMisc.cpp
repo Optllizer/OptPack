@@ -101,7 +101,10 @@ kmBranch(0x80531f7c, ReturnCorrectId);
 static GameType SyncCountdown(const Racedata& raceData) {
     GameType type = raceData.racesScenario.settings.gametype;
     const System* system = System::sInstance;
-    if(system->IsContext(PULSAR_MODE_KO) && type == GAMETYPE_ONLINE_SPECTATOR) type = GAMETYPE_DEFAULT;
+    if(system->IsContext(PULSAR_MODE_KO) && type == GAMETYPE_ONLINE_SPECTATOR) {
+        type = GAMETYPE_DEFAULT;
+        Racedata::sInstance->racesScenario.settings.gametype = GAMETYPE_DEFAULT;
+    }
     return type;
 }
 kmCall(0x806537d8, SyncCountdown);
