@@ -64,7 +64,7 @@ static int MiiHeads(Racedata* racedata, u32 unused, u32 unused2, u8 id) {
             }
         }
     }
-    if (gamemode == MODE_TIME_TRIAL) {
+    if (gamemode == MODE_TIME_TRIAL || Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_RACE, SETTINGRACE_RADIO_MII) == RACESETTING_MII_DISABLED) {
         charId = racedata->racesScenario.players[id].characterId;
     }
 

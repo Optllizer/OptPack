@@ -58,6 +58,7 @@ enum Menu2Settings {
     SETTINGMENU2_RADIO_FLICKER = 0,
     SETTINGMENU2_RADIO_BLUR = 1,
     SETTINGMENU2_RADIO_FPS = 2,
+    SETTINGMENU2_RADIO_FOV = 3,
 };
 
 enum RaceSettings {
@@ -118,7 +119,8 @@ enum MenuSettingDisableMusic {
 
 enum MenuSettingInput {
     MENUSETTING_INPUT_DISABLED = 0x0,
-    MENUSETTING_INPUT_ENABLED = 0x1
+    MENUSETTING_INPUT_ENABLED = 0x1,
+    MENUSETTING_INPUT_FORCED = 0x2
 };
 
 enum MenuSettingBrsar {
@@ -148,6 +150,12 @@ enum MenuSetting2Blur {
 enum MenuSetting2FPS {
     MENUSETTING2_FPS_DISABLED = 0x0,
     MENUSETTING2_FPS_ENABLED = 0x1
+};
+
+enum MenuSetting2FOV {
+    MENUSETTING2_FOV_DEFAULT,
+    MENUSETTING2_FOV_169,
+    MENUSETTING2_FOV_43
 };
 
 //RACE SETTINGS

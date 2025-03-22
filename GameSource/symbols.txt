@@ -1883,6 +1883,7 @@ U32_RBBG_HOOK_PT1= 0x802575DF
 U32_RBBG_HOOK_PT2= 0x80258184
 FPSPatchHook = 0x80001202
 beginFrame= 0x8020fe24
+GetCameraParamBin__Q24Kart4LinkFUiUi= 0x805927d4
 
 sInstance__Q25RKNet11USERHandler = 0x809c2108
 saveFcAndCountryHookExit__Q26Pulsar2UIFv = 0x806513e4
@@ -1939,3 +1940,9 @@ __dt__12FriendButtonFv = 0x805d3850
 #YesNoMessageBox
 SetMessageBoxMsg__Q25Pages5YesNoFUiPQ24Text4Info = 0x806525fc
 PrepareButton__Q25Pages5YesNoFUiUiPQ24Text4InfoUiRC39PtmfHolder_2A<4Page,v,Ui,R10PushButton> = 0x80652604
+
+current_time = 0x800f24c8
+Update__7SectionFv = 0x806224f8
+CreateFriendKey__3DWCFPCQ23DWC11AccUserData = 0x800ec6bc
+Update__8ElineMgrFv=0x8052d888
+UpdateFromPrevRace__16RacedataScenarioFv=0x8052f1e0

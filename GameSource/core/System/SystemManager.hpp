@@ -50,9 +50,9 @@ public:
     u32 isRGB60;
     u32 unknown_0x6c;
     u32 launchType; //0x70
-    float framerate;
-    float frameratePAL50;
-    float frameDuration;
+    float framerate; //0x74
+    float frameratePAL50; //0x78
+    float frameDuration; //0x7c
     bool isNdev;
     u8 padding2;
     u16 launchCode; //0x82 8000a970

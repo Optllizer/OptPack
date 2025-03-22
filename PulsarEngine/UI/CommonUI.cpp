@@ -72,7 +72,7 @@ void RaceMenuExtraControls(Pages::RaceMenu& page, u32 gameControlCount) {
 kmCall(0x80858ebc, RaceMenuExtraControls);
 
 void CorrectRoomStartButton(Pages::Globe::MessageWindow& control, u32 bmgId, Text::Info* info) {
-    Network::SetGlobeMsgColor(control, -1);
+    //Network::SetGlobeMsgColor(control, -1);
     if (bmgId == BMG_PLAY_GP || bmgId == BMG_PLAY_TEAM_GP) {
         const u32 hostContext = System::sInstance->netMgr.hostContext;
         const bool isOTT = hostContext & (1 << PULSAR_MODE_OTT);

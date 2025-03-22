@@ -10,6 +10,8 @@
 #include <Gamemodes/KO/KORaceEndPage.hpp>
 #include <Debug/Debug.hpp>
 #include <UI/UI.hpp>
+#include <MarioKartWii/Kart/KartLink.hpp>
+#include <Settings/Settings.hpp>
 
 
 
@@ -139,6 +141,40 @@ u8 ModifyCheckRankings() {
 kmCall(0x8085b4bc, ModifyCheckRankings);
 kmPatchExitPoint(ModifyCheckRankings, 0x8085bbe0);
 
+static bool s_hasSavedCameraParams = false;
+static CameraParamBin s_savedCameraParams;
 
+CameraParamBin* GetKartParamCamera(u32 weight, u32 screenCount) {
+    CameraParamBin* cameraParam = Kart::Link::GetCameraParamBin(weight, screenCount);
+    if (cameraParam != nullptr && !s_hasSavedCameraParams) {
+        s_savedCameraParams = *cameraParam;
+        s_hasSavedCameraParams = true;
+    } // Closing brace added here
+
+    MenuSetting2FOV fovChange = static_cast<MenuSetting2FOV>(Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_MENU2, SETTINGMENU2_RADIO_FOV));
+    if (fovChange != MENUSETTING2_FOV_DEFAULT) {
+        if (fovChange == MENUSETTING2_FOV_169) {
+            for (int i = 0; i < 9; ++i) {
+                s_savedCameraParams.camerasParam[i][0] = cameraParam->camerasParam[i][1];
+                s_savedCameraParams.camerasParam[i][1] = cameraParam->camerasParam[i][1];
+                s_savedCameraParams.camerasParam[i][2] = cameraParam->camerasParam[i][3];
+                s_savedCameraParams.camerasParam[i][3] = cameraParam->camerasParam[i][3];
+            }
+        } else if (fovChange == MENUSETTING2_FOV_43) {
+            for (int i = 0; i < 9; ++i) {
+                s_savedCameraParams.camerasParam[i][0] = cameraParam->camerasParam[i][0];
+                s_savedCameraParams.camerasParam[i][1] = cameraParam->camerasParam[i][0];
+                s_savedCameraParams.camerasParam[i][2] = cameraParam->camerasParam[i][2];
+                s_savedCameraParams.camerasParam[i][3] = cameraParam->camerasParam[i][2];
+            }
+        }
+
+        return &s_savedCameraParams;
+    }
+
+    return cameraParam;
+}
+
+kmCall(0x805a20d4, GetKartParamCamera);
 }//namespace UI
 }//namespace Pulsar

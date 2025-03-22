@@ -52,7 +52,13 @@ public:
     ~RaceTimerMgr() override; //805376e0 vtable 808b34b0
     void Reset() override; //80535864
     void Update() override; //80535904
-    u8 unknown_0x40[0x50 - 0x40];
+    bool hasRaceTimeRanOut; // 0x40
+    bool hasRaceStarted; // 0x41
+    bool isTimerReversed; // 0x42
+    u8 unknown_0x43; 
+    u32 raceDurationMs; //0x44
+    u32 raceFrameCounter; //0x48
+    u8 unknown_0x40[0x50 - 0x4c];
 }; //Total size 0x50
 
 class RaceinfoPlayer {

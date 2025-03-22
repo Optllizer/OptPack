@@ -9,25 +9,40 @@
 
 namespace Pulsar {
 namespace Network {
-
+/*
 static const ut::Color colors[5] = { 0xffff00ff, 0x00ff00ff, 0xffa000ff, 0x00ffffff, 0x00a0ffff };
 
 ut::Color GetFriendColor(u32 friendIdx) {
     RKNet::SearchType type = RKNet::Controller::sInstance->GetFriendSearchType(friendIdx);
     const ut::Color* color = &colors[0];
+    u8 friendRegion = 0;
+    const RKNet::Friend* friendData = &RKNet::Controller::sInstance->friends[friendIdx];
+    if (friendData) {
+        friendRegion = friendData->statusData.regionId;
+    }
+    
+    OS::Report("GetFriendColor - friendIdx: %d, friendRegion: %02X\n", friendIdx, friendRegion);
+    
+    bool isSpecialRegion = (friendRegion == 0x36C);
+    
     switch(type) {
-        case RKNet::SEARCH_TYPE_VS_WW: return color[0];
-        case RKNet::SEARCH_TYPE_BT_WW: return color[2];
-        case RKNet::SEARCH_TYPE_BT_REGIONAL: return color[3];
+        case RKNet::SEARCH_TYPE_VS_WW: 
+            return color[0];
+        case RKNet::SEARCH_TYPE_BT_WW: 
+            return color[2];
+        case RKNet::SEARCH_TYPE_BT_REGIONAL: 
+            return color[3];
         case RKNet::SEARCH_TYPE_VS_REGIONAL:
-            if(System::sInstance->netMgr.statusDatas[friendIdx]) return color[4];
-            else return color[1];
+            if (isSpecialRegion) {
+                OS::Report("GetFriendColor - Special region: 0x36C\n");
+                return color[4];
+            } else {
+                return color[1];
+            }
         default:
             return *color;
     }
 }
-
-
 
 //wiimmfi hook forces the u64 trick
 u64 AddModeToStatusData(const RKNet::StatusData* own) {
@@ -204,15 +219,33 @@ void SetGlobeMsgColor(Pages::Globe::MessageWindow& msg, ut::Color color) {
 void GlobeMsgColor(Pages::Globe::MessageWindow& msg, u32 bmgId, Text::Info* info) {
     register Pages::Globe* globe;
     asm(mr globe, r31;);
-    if(System::sInstance->netMgr.statusDatas[globe->selFriendIdx] == true) bmgId = UI::BMG_OTT_PLAYING;
+    
+    u8 friendRegion = 0;
+    const RKNet::Friend* friendData = &RKNet::Controller::sInstance->friends[globe->selFriendIdx];
+    if (friendData) {
+        friendRegion = friendData->statusData.regionId;
+    }
+    
+    OS::Report("GlobeMsgColor - Selected friend region: %02X\n", friendRegion);
+    
+    if (friendRegion == 0x36C) {
+        bmgId = UI::BMG_OTT_PLAYING;
+        OS::Report("GlobeMsgColor - BMG ID set to OTT_PLAYING\n");
+    }
+
     msg.SetMessage(bmgId, info);
     ut::Color color;
-    if(globe->curSelFriendStatus >= 0x15 && globe->curSelFriendStatus <= 0x18) color = GetFriendColor(globe->selFriendIdx);
-    else color = -1;
+    if(globe->curSelFriendStatus >= 0x15 && globe->curSelFriendStatus <= 0x18) {
+        color = GetFriendColor(globe->selFriendIdx);
+        OS::Report("GlobeMsgColor - Friend status in range: color set\n");
+    } else {
+        color = static_cast<ut::Color>(-1);
+        OS::Report("GlobeMsgColor - Friend status out of range: color set to -1\n");
+    }
     SetGlobeMsgColor(globe->message, color);
 }
 kmCall(0x805e504c, GlobeMsgColor);
-
+*/
 void GlobeSearchTopMsg(CtrlMenuPageTitleText& title, u32 bmgId, Text::Info* info) {
     if(System::sInstance->IsContext(PULSAR_MODE_OTT) == Pulsar::OTTSETTING_ONLINE_NORMAL) bmgId = UI::BMG_OTT_TITLE_TEXT;
     title.SetMessage(bmgId, info);
