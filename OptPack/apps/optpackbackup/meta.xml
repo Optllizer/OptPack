@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<app version="1">
+  <name>OptPack Updater BACKUP</name>
+  <coder>Optllizer</coder>
+  <version>1.7</version>
+  <release_date>2024</release_date>
+  <short_description>Backup updater for OptPack</short_description> 
+  <long_description>
+	THIS IS A BACKUP UPDATER.
+	OptPack is a modpack for Mario Kart Wii. This program is used to update the OptPack CT Pack.
+	Thanks to Sain and That One Atlas, they both helped the author code and modifed existing code.
+	Thanks to teknecal for his HTTP Source Code.
+	Thanks to Bad Wolf for fixing issues with version control.
+  </long_description> 
+</app>
+
+
+
+
