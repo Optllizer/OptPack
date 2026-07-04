@@ -181,17 +181,17 @@ kmCall(0x807ef444, ChangeItemWindowPane);
 kmWrite24(0x808A9FF3, 'PUL');
 
 //Accurate Item Roulette Roulette by BrawlBox
-static int AccurateItemRoulette(Item::ItemSlotData *itemSlotData, u16 itemBoxType, u8 position, ItemId prevRandomItem, bool r7){
-        if (!IsBattle()){
-            const u8 playerId = Raceinfo::sInstance->playerIdInEachPosition[position-1];
-            Item::Player *itemPlayer = &Item::Manager::sInstance->players[playerId];
-            return itemSlotData->DecideItem(itemBoxType, position, itemPlayer->isHuman, 0x1, itemPlayer);
-            }
-            return itemSlotData->DecideRouletteItem(itemBoxType, position, prevRandomItem, r7);
-}
-kmCall(0x807ba1e4, AccurateItemRoulette);
-kmCall(0x807ba428, AccurateItemRoulette);
-kmCall(0x807ba598, AccurateItemRoulette);
+//static int AccurateItemRoulette(Item::ItemSlotData *itemSlotData, u16 itemBoxType, u8 position, ItemId prevRandomItem, bool r7){
+//        if (!IsBattle()){
+//            const u8 playerId = Raceinfo::sInstance->playerIdInEachPosition[position-1];
+//          Item::Player *itemPlayer = &Item::Manager::sInstance->players[playerId];
+//            return itemSlotData->DecideItem(itemBoxType, position, itemPlayer->isHuman, 0x1, itemPlayer);
+//            }
+//            return itemSlotData->DecideRouletteItem(itemBoxType, position, prevRandomItem, r7);
+//}
+//kmCall(0x807ba1e4, AccurateItemRoulette);
+//kmCall(0x807ba428, AccurateItemRoulette);
+//kmCall(0x807ba598, AccurateItemRoulette);
 
 //Deflicker by Toadette Hack Fan and Optllizer
 void DeFlicker() {

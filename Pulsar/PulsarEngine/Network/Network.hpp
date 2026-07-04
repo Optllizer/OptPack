@@ -16,7 +16,7 @@ enum DenyType {
 
 class Mgr { //Manages network related stuff within Pulsar
 public:
-    Mgr() : racesPerGP(3), curBlockingArrayIdx(0), region(0x36B) {}
+    Mgr() : racesPerGP(3), curBlockingArrayIdx(0), region(0x29A) {}
     u32 hostContext;
     DenyType denyType;
     u8 deniesCount;

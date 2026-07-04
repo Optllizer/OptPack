@@ -129,48 +129,19 @@ void CupsConfig::SetWinning(PulsarId id, u32 variantIdx) {
 
 void CupsConfig::ToggleCTs(bool enabled) {
     u32 count;
-    bool isDisabled = false;
-    bool isRegsOnly = false;
-    bool isFroom =
-        (RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_HOST ||
-         RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_NONHOST) &&
-        (RKNet::Controller::sInstance->connectionState != RKNet::CONNECTIONSTATE_SHUTDOWN);
-
-    if (isFroom) {
-        isDisabled = !System::sInstance->IsContext(PULSAR_REGS);
-        isRegsOnly = System::sInstance->IsContext(PULSAR_REGSONLY);
-    }
-
-    if (isRegsOnly) {
-        count = 0;
-        hasRegs = true;
-        selectedCourse = PULSARID_FIRSTREG;
-        lastSelectedCup = PULSARCUPID_FIRSTREG;
-        lastSelectedCupButtonIdx = 0;
-
-    } else if (!enabled) {
-
+    if (!enabled) {
         if (lastSelectedCup > 7) {
             hasRegs = true;
+            selectedCourse = PULSARID_FIRSTREG;
+            lastSelectedCup = PULSARCUPID_FIRSTREG; //CT cup -> regs
+            lastSelectedCupButtonIdx = 0;
         }
-
         count = 0;
-        selectedCourse = PULSARID_FIRSTREG;
-        lastSelectedCup = PULSARCUPID_FIRSTREG;
-        lastSelectedCupButtonIdx = 0;
-
-    } else if (isDisabled) {
-        count = definedCTsCupCount;
-        hasRegs = false;
-
-    } else {
-        count = definedCTsCupCount;
-        hasRegs =
-            (RKNet::Controller::sInstance->roomType != RKNet::ROOMTYPE_VS_REGIONAL) &&
-            (RKNet::Controller::sInstance->roomType != RKNet::ROOMTYPE_JOINING_REGIONAL) ||
-            (RKNet::Controller::sInstance->connectionState == RKNet::CONNECTIONSTATE_SHUTDOWN);
     }
-
+    else {
+        count = definedCTsCupCount;
+        hasRegs = regsMode > 0;
+    }
     ctsCupCount = count;
 }
 

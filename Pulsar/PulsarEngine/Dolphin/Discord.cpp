@@ -41,7 +41,7 @@ void DiscordRichPresence(Section* _this) {
     }
 
     if (!hasWrittenClientID) {
-        Dolphin::SetDiscordClient("1340111843338748046");
+        Dolphin::SetDiscordClient("1364634913982120077");
         hasWrittenClientID = true;
     }
 

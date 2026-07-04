@@ -105,8 +105,8 @@ static void BeforeROOMSend(RKNet::PacketHolder<PulROOM>* packetHolder, PulROOM* 
             | koSetting << PULSAR_MODE_KO
             | (settings.GetSettingValue(Settings::SETTINGSTYPE_HOST, SETTINGHOST_ALLOW_MIIHEADS) ^ false) << PULSAR_MIIHEADS
             | settings.GetSettingValue(Settings::SETTINGSTYPE_HOST, SETTINGHOST_RADIO_HOSTWINS) << PULSAR_HAW
-            | settings.GetSettingValue(Settings::SETTINGSTYPE_HOST, SETTINGHOST_ALLOW_REGS) << PULSAR_REGS
-            | (regOnly == HOSTSETTING_ALLOW_REGONLY_ENABLED) << PULSAR_REGSONLY
+            //| settings.GetSettingValue(Settings::SETTINGSTYPE_HOST, SETTINGHOST_ALLOW_REGS) << PULSAR_REGS
+            //| (regOnly == HOSTSETTING_ALLOW_REGONLY_ENABLED) << PULSAR_REGSONLY
             | isStartOPTWW << PULSAR_STARTOPTWW
             | isStartOTWW << PULSAR_STARTOTTWW;
 

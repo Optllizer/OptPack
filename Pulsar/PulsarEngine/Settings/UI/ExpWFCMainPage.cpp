@@ -54,7 +54,7 @@ void ExpWFCModeSel::OnInit() {
 void ExpWFCModeSel::InitButton(ExpWFCModeSel& self) {
     self.InitControlGroup(6);
 
-    self.region = 0x36B;  // Store region in the page class instead
+    self.region = 0x29A;  // Store region in the page class instead
     self.AddControl(5, self.ottButton, 0);
     self.ottButton.Load(UI::buttonFolder, "PULOTTButton", "PULOTTButton", 1, 0, 0);
     self.ottButton.buttonId = ottButtonId;
@@ -90,11 +90,11 @@ void ExpWFCModeSel::OnModeButtonClick(PushButton& modeButton, u32 hudSlotId) {
     ClearModeContexts();
     
     if (id == ottButtonId) {
-        System::sInstance->netMgr.region = 0x36C;
+        System::sInstance->netMgr.region = 0x29B;
         System::sInstance->context |= (1 << PULSAR_MODE_OTT);
     }
     else {
-        System::sInstance->netMgr.region = 0x36B;
+        System::sInstance->netMgr.region = 0x29A;
     }
 
     this->lastClickedButton = id;

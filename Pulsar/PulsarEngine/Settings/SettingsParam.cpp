@@ -12,7 +12,7 @@ u8 Params::radioCount[Params::pageCount] ={
     //Add user radio count here
 
 };
-u8 Params::scrollerCount[Params::pageCount] ={ 0, 1, 1, 0, 2, 0 }; //menu, race, host, OTT, KO
+u8 Params::scrollerCount[Params::pageCount] ={ 1, 1, 1, 0, 2, 2 }; //menu, race, host, OTT, KO
 
 u8 Params::buttonsPerPagePerRow[Params::pageCount][Params::maxRadioCount] = //first row is PulsarSettingsType, 2nd is rowIdx of radio
 {
@@ -32,13 +32,8 @@ u8 Params::optionsPerPagePerScroller[Params::pageCount][Params::maxScrollerCount
     { 15, 0, 0, 0, 0}, //Host
     { 0, 0, 0, 0, 0}, //OTT
     { 4, 4, 0, 0, 0}, //KO
-    { 0, 0, 0, 0, 0}, //Menu2
-    //{ 18, 0, 0, 0, 0}, //Menu2
-    //{}, //User
+    { 16, 16, 0, 0, 0}, //Menu2
 };
 
 }//namespace Settings
 }//namespace Pulsar
-
-
-

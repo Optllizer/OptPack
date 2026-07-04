@@ -10,13 +10,13 @@ namespace Pulsar {
 namespace Network {
 //Region Patch (Leseratte)
 /*
-static u32 region = 0x36B;
+static u32 region = 0x29C;
 
 static void PatchRegionNumber() {
     if (System::sInstance->IsContext(PULSAR_MODE_OTT)) {
-        region = 0x36C;
+        region = 0x29D;
     } else {
-        region = 0x36B;
+        region = 0x29C;
     }
 }
 static PageLoadHook RegionNumberPatch(PatchRegionNumber);*/
@@ -52,8 +52,8 @@ kmCall(0x80659788, PatchRegion);
 static int GetFriendsSearchType(int curType, u32 regionId) {
     register u8 friendRegionId;
     asm(mr friendRegionId, r0;);
-    if ((System::sInstance->netMgr.region == 0x36B || System::sInstance->netMgr.region == 0x36C) ||
-        (friendRegionId == 0x36B || friendRegionId == 0x36C)) {
+    if ((System::sInstance->netMgr.region == 0x29A || System::sInstance->netMgr.region == 0x29B) ||
+        (friendRegionId == 0x29A || friendRegionId == 0x29B)) {
         if (curType == 7) return 6;
         return 9;
     }

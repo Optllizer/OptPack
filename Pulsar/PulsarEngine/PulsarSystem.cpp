@@ -165,8 +165,8 @@ void System::UpdateContext() {
                 isKO = newContext & (1 << PULSAR_MODE_KO);
                 isOTT = newContext & (1 << PULSAR_MODE_OTT);
                 isMiiHeads = newContext & (1 << PULSAR_MIIHEADS);
-                isRegs = newContext & (1 << PULSAR_REGS);
-                isRegsOnly = newContext & (1 << PULSAR_REGSONLY);
+                //isRegs = newContext & (1 << PULSAR_REGS);
+                //isRegsOnly = newContext & (1 << PULSAR_REGSONLY);
                 isStartOPTWW = newContext & (1 << PULSAR_STARTOPTWW);
                 isStartOTWW = newContext & (1 << PULSAR_STARTOTTWW);
                 if(isOTT) {
@@ -189,7 +189,7 @@ void System::UpdateContext() {
 
     u32 preserved = this->context & ((1 << PULSAR_MODE_OTT));
     
-    u32 newContextValue = (isCT << PULSAR_CT) | (isHAW << PULSAR_HAW) | (isMiiHeads << PULSAR_MIIHEADS) | (isRegs << PULSAR_REGS) | (isRegsOnly << PULSAR_REGSONLY);
+    u32 newContextValue = (isCT << PULSAR_CT) | (isHAW << PULSAR_HAW) | (isMiiHeads << PULSAR_MIIHEADS);
     if(isCT) { //contexts that should only exist when CTs are on
         newContextValue |= (is200 << PULSAR_200) | (isFeather << PULSAR_FEATHER) | (isUMTs << PULSAR_UMTS) | (isMegaTC << PULSAR_MEGATC) | (isOTT << PULSAR_MODE_OTT) | (isKO << PULSAR_MODE_KO) |
         (isStartOPTWW) << PULSAR_STARTOPTWW | (isStartOTWW) << PULSAR_STARTOTTWW;
@@ -200,12 +200,12 @@ void System::UpdateContext() {
     const u32 region = this->netMgr.region;
     if (RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_VS_REGIONAL || RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_JOINING_REGIONAL) {
         switch (region) {
-            case 0x36B: 
+            case 0x29A: 
                 this->context |= (1 << PULSAR_CT);
                 sInstance->context &= ~(1 << PULSAR_MODE_OTT);
                 break;
                 
-            case 0x36C: 
+            case 0x29B: 
                 this->context |= (1 << PULSAR_CT);
                 this->context |= (1 << PULSAR_MODE_OTT);
                 break;
@@ -267,11 +267,11 @@ kmWrite32(0x80549974, 0x38600001);
 //Skip ESRB page
 kmRegionWrite32(0x80604094, 0x4800001c, 'E');
 
-//OptPack Pack ID
-kmWrite32(0x800017D0, 0x36B);
+//Luminous Pack ID
+kmWrite32(0x800017D0, 0x29A);
 
-//OptPack Pack Version 4673
-kmWrite32(0x800017D4, 0x00001241);
+//Luminous Pack Version 258
+kmWrite32(0x800017D4, 0x00000102);
 
 const char System::pulsarString[] = "/Pulsar";
 const char System::CommonAssets[] = "/CommonAssets.szs";
